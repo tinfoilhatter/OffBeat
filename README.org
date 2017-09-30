@@ -70,9 +70,7 @@ was ported to Gambas 3.
 - Enabled online lookup of information about the current clock with
   the "More about this timekeeping system" menu option.
 
-** 1.1
-
-1999. Never released.
+** 1.1 (1999, never released)
 
 - Added Discordian, Illuminati, and Bahá'í dates.
 - Fixed a bug whereby some weekdays were calculated wrong for Eldarin
@@ -89,12 +87,17 @@ was ported to Gambas 3.
 
 ** 1.0
 
-Gregorian: Monday, January 25, 1999, 12:05:48 AM (UTC -08)\\
-World Calendar: Wednesday, January 25, 1999 C.E.\\
-Swatch Internet Time: @379 (1999-01-25 BMT)\\
-Shire Reckoning: Mersday, Solmath 3, 1999 S.R.\\
-Eldarin: Valanya, 65 Hrívë, 1998, Calendar of Imladris (after sundown)\\
-Stardate: [-30]2431.69\\
+Gregorian: Monday, January 25, 1999, 12:05:48 AM (UTC -08)
+
+World Calendar: Wednesday, January 25, 1999 C.E.
+
+Swatch Internet Time: @379 (1999-01-25 BMT)
+
+Shire Reckoning: Mersday, Solmath 3, 1999 S.R.
+
+Eldarin: Valanya, 65 Hrívë, 1998, Calendar of Imladris (after sundown)
+
+Stardate: [-30]2431.69
 
 Initial release under the name Many Moons, later determined to be
 potentially offensive. Supports the Gregorian calendar, civil time,
