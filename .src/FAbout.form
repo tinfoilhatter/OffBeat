@@ -9,12 +9,12 @@
   }
   { Label2 Label
     MoveScaled(7,10,48,6)
-    Text = ("An offbeat, multicultural clock and calendar program.\nCopyright (C) 2012 Ron Hale-Evans.")
+    Text = ("An offbeat, multicultural clock and calendar program.\nCopyright 2012 Ron Hale-Evans.")
     Alignment = Align.Center
   }
   { Label3 Label
     MoveScaled(6,17,49,4)
-    Text = ("Version 120904a")
+    Text = ("Version 1710xx")
     Alignment = Align.Center
   }
 }
