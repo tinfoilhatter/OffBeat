@@ -1,0 +1,20 @@
+# Gambas Form File 3.0
+
+{ Form Form
+  MoveScaled(0,0,64,23)
+  { Label1 Label
+    MoveScaled(21,2,20,7)
+    Font = Font["Bold,+8"]
+    Text = ("OffBeat")
+  }
+  { Label2 Label
+    MoveScaled(7,10,48,6)
+    Text = ("An offbeat, multicultural clock and calendar program.\nCopyright (C) 2012 Ron Hale-Evans.")
+    Alignment = Align.Center
+  }
+  { Label3 Label
+    MoveScaled(6,17,49,4)
+    Text = ("Version 120904a")
+    Alignment = Align.Center
+  }
+}

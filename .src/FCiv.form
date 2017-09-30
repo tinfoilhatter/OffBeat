@@ -1,0 +1,50 @@
+# Gambas Form File 3.0
+'
+'OffBeat, an offbeat, multicultural clock and calendar program.
+'Copyright (C) 2012 Ron Hale-Evans.
+'This file is part of OffBeat.
+'
+'OffBeat is free software: you can redistribute it and/or modify it 
+'under the terms of the GNU Affero General Public License as published 
+'by the Free Software Foundation, either version 3 of the License, or 
+'(at your option) any later version.
+'
+'OffBeat is distributed in the hope that it will be useful, but 
+'WITHOUT ANY WARRANTY; without even the implied warranty of 
+'MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+'Affero General Public License for more details.
+'
+'You should have received a copy of the GNU Affero General Public 
+'License along with OffBeat. If not, see 
+'<http://www.gnu.org/licenses/>. 
+{ Form Form 
+  MoveScaled(0,0,53,41)
+  { OK Button 
+    MoveScaled(36,35,16,4)
+    Text = ("OK")
+    Default = True
+  }
+  { DateIn ValueBox 
+    MoveScaled(4,5,44,7)
+    Type = ValueBox.Date
+  }
+  { TimeIn ValueBox 
+    MoveScaled(4,20,33,7)
+    Type = ValueBox.Time
+  }
+  { TextLabel1 TextLabel 
+    MoveScaled(23,13,9,4)
+    Text = ("Date")
+  }
+  { TextLabel4 TextLabel 
+    MoveScaled(22,28,9,4)
+    Text = ("Time")
+  }
+  { TextLabel7 TextLabel 
+    MoveScaled(41,28,9,5)
+    Text = ("Timezone")
+  }
+  { TZin ValueBox 
+    MoveScaled(39,20,9,7)
+  }
+}

@@ -1,0 +1,2287 @@
+' Gambas class file
+
+'
+'OffBeat, an offbeat, multicultural clock and calendar program.
+'Copyright (C) 2012 Ron Hale-Evans.
+
+'This file is part of OffBeat.
+'
+'OffBeat is free software: you can redistribute it and/or modify it 
+'under the terms of the GNU Affero General Public License as published 
+'by the Free Software Foundation, either version 3 of the License, or 
+'(at your option) any later version.
+'
+'OffBeat is distributed in the hope that it will be useful, but 
+'WITHOUT ANY WARRANTY; without even the implied warranty of 
+'MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+'Affero General Public License for more details.
+'
+'You should have received a copy of the GNU Affero General Public 
+'License along with OffBeat. If not, see 
+'<http://www.gnu.org/licenses/>. 
+
+Public Const SecondsPerDay As Integer = 86400
+HelpURL As String
+MenuChoice As String
+
+Public unixtime As Long
+Public timezone As Float
+Public unixday As Float
+
+Public LTZ As String
+Public LTZdiff As Integer
+
+Public CurJD As Float
+'PUBLIC JDinput AS Float
+Public tjdstring As String
+Public jd As Float
+
+Public theYear As Integer
+Public theMonth As Integer
+Public theDay As Integer
+
+Public theHour28 As Float
+
+Public DST As Boolean
+Public Latitude As Float
+Public Longitude As Float
+Public AdjTimezone As Integer
+Public LocalFlag As Boolean
+
+Public BahaiDayNames As New String[21, 2]
+Public BahaiMoLens As New Integer[21, 2]
+Public BahaiMoNames As New String[21, 2]
+Public BahaiWeekdays As New String[7, 2]
+Public BahaiYearNames As New String[21, 2]
+Public DiscoApostleHolydays As New String[6]
+Public DiscoMoLens As New Integer[6, 2]
+Public DiscoMoNames As New String[6]
+Public DiscoSeasonHolydays As New String[6]
+Public DiscoWeekdays As New String[5]
+Public EldarMoNames As New String[10, 3]
+Public EldarMoStarts As New Integer[10, 3]
+Public EldarWeekdays As New String[6, 3]
+Public GregMoLens As New Integer[13]
+Public GregMoNames As New String[13]
+Public GregWeekdays As New String[7]
+Public IllumMoNames As New String[6]
+Public ShireMoNames As New String[13]
+Public ShireMoStarts As New Integer[13, 2]
+Public ShireWeekdays As New String[7]
+Public WorldCalMoLens As New Integer[15, 2]
+Public WorldCalMoNames As New String[15]
+Public WorldCalWeekdays As New String[7]
+
+Public ActualMoLens[13] As Integer
+
+Public Sub _new()
+End
+
+Public Sub Form_Open()
+  Timer1.Enabled = True
+  MenuChoice = "CivilLocal"
+  FMain.Caption = "OffBeat"
+  HelpURL = "http://en.wikipedia.org/wiki/Main_Page"
+  
+  BahaiDataInit
+  DiscoDataInit
+  EldarDataInit
+  GregDataInit
+  IllumDataInit
+  ShireDataInit
+  WorldCalDataInit
+  
+  LocalFlag = True
+  
+  'University Place, WA
+  Latitude = 47.219444
+  Longitude = -122.541667
+End
+
+Public Sub Timer1_Timer()
+  GetUnixTime
+  GetLocalTimezone
+  
+  CurJD = JulianDayFromUnixTime(unixtime)
+  
+  Select MenuChoice
+    Case "CivilLocal"
+      time.text = Str$(Time(Now))
+    Case "TwentyEight"
+      theHour28 = HourOfWeek28()
+      time.text = Weekday28(theHour28) & ", " & Hour28(theHour28)
+    Case "Klock"
+      time.text = DiscoKlockString()
+    Case "JulianDay"
+      time.text = Left$(Format$(CurJD, "0000000.00000"), 10)
+    Case "FractionalDayLocal"
+      time.text = Left$(Str$(LocalFractionalDay(CurJD)), 5)
+    Case "FractionalDayUniversal"
+      time.text = Left$(Str$(UniversalFractionalDay(CurJD)), 5)
+    Case "HexadecimalDayLocal"
+      time.text = "." & Hex$(LocalHexDay(CurJD), 4)
+    Case "HexadecimalDayUniversal"
+      time.text = "." & Hex$(UniversalHexDay(CurJD), 4)
+    Case "ModifiedJulianDay"
+      time.text = Left$(Format$(MJDFromJD(CurJD), "00000.00000"), 8)
+    Case "NewEarthTime"
+      time.text = Format(NetDegrees(CurJD), "##0") & "°" & Format(NetMinutes(CurJD), "00") & "'"
+    Case "RDate"
+      time.text = RonDateFromJD(CurJD)
+    Case "SharpDateCode"
+      time.text = SharpDate(CurJD)
+    Case "Stardate"
+      time.text = StardateFromJD(CurJD)
+    Case "Swatch"
+      time.text = SwatchString(CurJD)
+    Case "TruncatedJulianDay"
+      time.text = Left$(Format$(TruncatedJulianDayFromJD(CurJD), "0000.00000"), 7)
+    Case "UTC"
+      time.text = utcStringNow()
+    End Select
+End
+
+'==========================================================================================
+
+Public Sub About_Click()
+  FAbout.Caption = "About OffBeat"
+  FAbout.Show
+  HelpURL = "http://en.wikipedia.org/wiki/Gregorian_calendar"
+End
+
+Public Sub Timestamp_Click()
+  FCal.Caption = "Timestamp"
+  FCal.CurJD = CurJD
+  FCal.Show
+  HelpURL = "http://en.wikipedia.org/wiki/Gregorian_calendar"
+End
+
+Public Sub ConvertDate_Click()
+  FCiv.Caption = "Convert a civil date/time"
+  FCiv.Show
+  HelpURL = "http://en.wikipedia.org/wiki/Gregorian_calendar"
+End
+
+Public Sub ConvertJD_Click()
+  FCiv.Caption = "Convert Julian day"
+  FJD.Show
+  HelpURL = "http://en.wikipedia.org/wiki/Julian_day"
+End
+
+Public Sub ClockRadio_Click()
+  FClockRadio.Caption = "Clock radio mode"
+  FClockRadio.Show
+End
+
+Public Sub MoreAbout_Click()
+  Desktop.Open(HelpURL)
+End
+
+'===========================================
+
+Public Sub CivilLocal_Click()
+  MenuChoice = "CivilLocal"
+  FMain.Caption = "Civil (local)"
+  HelpURL = "http://en.wikipedia.org/wiki/Civil_time"
+End
+
+Public Sub UTC_Click()
+  MenuChoice = "UTC"
+  FMain.Caption = "Coordinated Universal Time (UTC)"
+  HelpURL = "http://en.wikipedia.org/wiki/Coordinated_Universal_Time"
+End
+
+Public Sub Klock_Click()
+  MenuChoice = "Klock"
+  FMain.Caption = "Discordian Klock"
+  HelpURL = "http://www.tranglos.com/fnord/klock.html"
+End
+
+Public Sub JulianDay_Click()
+  MenuChoice = "JulianDay"
+  FMain.Caption = "Julian Day"
+  HelpURL = "http://en.wikipedia.org/wiki/Julian_day"
+End
+
+Public Sub ModifiedJulianDay_Click()
+  MenuChoice = "ModifiedJulianDay"
+  FMain.Caption = "Modified Julian day"
+  HelpURL = "http://en.wikipedia.org/wiki/Julian_day"
+End
+
+Public Sub TruncatedJulianDay_Click()
+  MenuChoice = "TruncatedJulianDay"
+  FMain.Caption = "Truncated Julian day (NIST)"
+  HelpURL = "http://en.wikipedia.org/wiki/Julian_day"
+End
+
+Public Sub Swatch_Click()
+    MenuChoice = "Swatch"
+    FMain.Caption = "Swatch Internet Time"
+    HelpURL = "http://en.wikipedia.org/wiki/Swatch_Internet_Time"
+End
+
+Public Sub NewEarthTime_Click()
+  MenuChoice = "NewEarthTime"
+  FMain.Caption = "New Earth Time (NET)"
+  HelpURL = "http://en.wikipedia.org/wiki/New_Earth_Time"
+End
+
+Public Sub FractionalDayLocal_Click()
+  MenuChoice = "FractionalDayLocal"
+  FMain.Caption = "Fractional day (local)"
+  HelpURL = "http://en.wikipedia.org/wiki/Decimal_time"
+End
+
+Public Sub FractionalDayUniversal_Click()
+  MenuChoice = "FractionalDayUniversal"
+  FMain.Caption = "Fractional day (universal)"
+  HelpURL = "http://en.wikipedia.org/wiki/Decimal_time"
+End
+
+Public Sub HexadecimalDayLocal_Click()
+  MenuChoice = "HexadecimalDayLocal"
+  FMain.Caption = "Hexadecimal time (local)"
+  HelpURL = "http://en.wikipedia.org/wiki/Hexadecimal_time"
+End
+
+Public Sub HexadecimalDayUniversal_Click()
+  MenuChoice = "HexadecimalDayUniversal"
+  FMain.Caption = "Hexadecimal time (universal)"
+  HelpURL = "http://en.wikipedia.org/wiki/Hexadecimal_time"
+End
+
+Public Sub RDate_Click()
+  MenuChoice = "RDate"
+  FMain.Caption = "rDate"
+  HelpURL = "http://www.ludism.org/mentat/DateCode"
+End
+
+Public Sub SharpDateCode_Click()
+  MenuChoice = "SharpDateCode"
+  FMain.Caption = "Sharp Date Code"
+  HelpURL = "http://www.ludism.org/mentat/DateCode"
+End
+
+Public Sub Stardate_Click()
+  MenuChoice = "Stardate"
+  FMain.Caption = "Stardate"
+  HelpURL = "http://starchive.cs.umanitoba.ca/?stardates/part1"
+End
+
+Public Sub TwentyEight_Click()
+  MenuChoice = "TwentyEight"
+  FMain.Caption = "28-Hour Day"
+  HelpURL = "http://www.dbeat.com/28/"
+End
+
+'===========================================================================
+
+Public Sub GetUnixTime()
+  Dim unixstr As String
+  Exec ["date", "+%s"] To unixstr
+  unixtime = Val(unixstr)
+End
+
+Public Sub GetLocalTimezone()
+  'Get local system timezone
+  Exec ["date", "+%::z"] To LTZ
+  'recalculate the local system timezone difference to seconds
+  ltzdiff = Val(Mid(LTZ, 2, 2)) * 3600 + Val(Mid(LTZ, 5, 2)) * 60 + Val(Mid(LTZ, 8, 2))
+  If Mid(LTZ, 1, 1) = "-" Then ltzdiff = ltzdiff * -1
+  'Now rerecalc as hours
+  timezone = ltzdiff / 3600
+End
+
+Function DecimalTimeFromDayFrac(DayFrac As Float) As Float
+  Return DayFrac * 24.00
+End
+
+Public Function FloatMod(A As Float, B As Long) As Float
+  Dim IntPart, ResultIntPart As Long
+  Dim FracPart, Result As Float
+  
+  IntPart = Int(A)
+  FracPart = A - IntPart
+  
+  ResultIntPart = IntPart Mod B
+  Result = ResultIntPart + FracPart
+  If Result > B Then Result = Result - ResultIntPart
+  
+  Return Result
+End
+
+Public Sub ShowObDate(D As ObDate)
+  Dim Result As String
+  
+  Result = D.sCalendar & ": "
+  Result = Result & Str(D.iDay) & "/" & Str(D.iMonth) & "/" & Str(D.iYear)
+  Result = Result & " (weekday=" & Str(D.iWeekday) & ", Special=" & D.sSpecialDay & ","
+  Result = Result & " C1=" & Str(D.iCycle1) & ", C2=" & Str(D.iCycle2) & ", C3=" & Str(D.iCycle3) & ")"
+  Result = Result & " " & Format(D.iHour, "00") & ":" & Format(D.iMinute, "00") & ":" & Format(D.iSecond, "00")
+  
+  Message.Info(Result)
+End Sub
+
+Public Function MakeDate(iDay As Integer, iMonth As Integer, iYear As Integer) As ObDate
+  Dim NewDate As ObDate
+  
+  NewDate = New ObDate
+  NewDate.iDay = iDay
+  NewDate.iMonth = iMonth
+  NewDate.iYear = iYear
+  
+  Return NewDate
+End Function
+
+Public Function MJDFromJD(JD As Float) As Float
+  Dim MJD As Float
+  MJD = JD - 2400000.5
+  Return MJD
+End Function
+
+Public Function JulianDayFromUnixTime(UnixTime As Long) As Float
+  Return (UnixTime / FMain.SecondsPerDay) + 2440587.5
+End
+
+Public Function TruncatedJulianDayFromJD(JD As Float) As Float
+  Return FMain.FloatMod((jd - 2400000.5), 10000)
+End
+
+Public Function JDFrac(JD As Float) As Float
+  Return JD - Int(JD)
+End
+
+Public Function JDFromGregDate(iYear As Integer, iMonth As Integer, iDay As Integer) As Long
+  'Calculates JDN at noon UTC
+  'Algorithm from Wikipedia
+  Dim a, y, m As Integer
+  
+  a = Int((14 - iMonth) / 12)
+  y = iYear + 4800 - a
+  m = iMonth + (12 * a) - 3
+  Return iDay + Int((153 * m + 2) / 5) + 365 * y + Int(y / 4) - Int(y / 100) + Int(y / 400) - 32045
+End
+
+Public Function UTCHourFromJD(JD As Float) As Float
+  Return Int(UniversalFractionalDay(JD) * 24)
+End
+
+
+Function TimeString(T As ObDate) As String
+  Return Format(T.iHour, "00") & ":" & Format(T.iMinute, "00") & ":" & Format(T.iSecond, "00") & " (UTC " & Format(Timezone, "+00") & ")"
+End Function
+
+Function Signum(Num As Float) As Integer
+  If Num > 0 Then
+    Return 1
+  Else If Num < 0 Then
+    Return -1
+  Else
+    Return 0
+  End If
+End Function
+
+Function RealMod(A As Float, B As Float) As Float
+  Dim C As Integer
+  'C = A \ B
+  C = Int(A / B)
+  Return A - B * C
+End Function
+
+Function HMSTimeFromDayFrac(DayFrac As Float) As ObDate
+  Return HMSTimeFromDecimalTime(24 * DayFrac)
+End
+
+Public Function HMSTimeFromDecimalTime(DecimalTime As Float) As ObDate
+  Dim HMSTime As ObDate
+  Dim iHour, iMinute, iSecond, old As Integer
+  Dim FracPart, DecimalMinute As Float
+  
+  HMSTime = New ObDate
+  iHour = Int(DecimalTime)
+  FracPart = DecimalTime - iHour
+  DecimalMinute = FracPart * 60
+  iMinute = Int(DecimalMinute)
+  FracPart = DecimalMinute - iMinute
+  iSecond = Round(FracPart * 60)
+  
+  If iSecond > 59 Then
+    old = iSecond
+    iSecond = iSecond Mod 60
+    iMinute = iMinute + (old - iSecond) \ 60
+  End If
+  If iMinute > 59 Then
+    old = iMinute
+    iMinute = iMinute Mod 60
+    iHour = iHour + (old - iMinute) \ 60
+  End If
+  If iHour > 23 Then
+    iHour = iHour Mod 60
+  End If
+  
+  HMSTime.iHour = iHour
+  HMSTime.iMinute = iMinute
+  HMSTime.iSecond = iSecond
+  
+  Return HMSTime
+End Function
+
+Function MakeTime(iHour As Integer, iMinute As Integer, iSecond As Integer) As ObDate
+  Dim NewDate As ObDate
+  
+  NewDate = New ObDate
+  
+  NewDate.iHour = iHour
+  NewDate.iMinute = iMinute
+  NewDate.iSecond = iSecond
+  
+  Return NewDate
+End Function
+
+Function DecimalTimeFromHMSTime(HMSTime As ObDate) As Float
+  Return HMSTime.Hour + HMSTime.Minute / 60 + HMSTime.Second / 3600
+End Function
+
+Function AdjustTimezoneForDST() As Integer
+  Dim Result As Integer
+  If DST Then
+    Result = Timezone '+ 1
+  Else
+    Result = Timezone
+  End If
+  Return Result
+End Function
+
+Function OrdinalFromCardinal(Cardinal As Float) As String
+  Dim CardStr, RightTwoDigits, S, OrdStr As String
+  Dim C, Digit As Integer
+  
+  CardStr = "0" & Str(Int(Cardinal))
+  RightTwoDigits = Right(CardStr, 2)
+  C = Val(CardStr)
+  
+  If C >= 11 And C < 20 Then
+    S = "th"
+  Else
+    Digit = C Mod 10
+    Select Case Digit
+    Case 1
+      S = "st"
+    Case 2
+      S = "nd"
+    Case 3
+      S = "rd"
+    Case Else
+      S = "th"
+    End Select
+  End If
+  
+  OrdStr = Str(Cardinal) & S
+  
+  Return OrdStr
+  
+End Function
+
+Function SecsSinceMidnight(iHour As Integer, iMinute As Integer, iSecond As Integer) As Float
+  Dim Secs As Float
+  Secs = (iHour * 3600) + (iMinute * 60) + iSecond
+  Return Secs
+End Function
+
+Function JDFromMJD(MJD As Float) As Float
+  Dim JD As Float
+  JD = MJD + 2400000.5
+  Return (JD)
+End Function
+
+Function utcStringNow() As String
+  Dim utcHour, utcMinute, utcSecond As Integer
+  utcHour = CInt(Hour(Now) - timezone + 24) Mod 24
+  utcMinute = Minute(Now)
+  utcSecond = Second(Now)
+  Return Format$(utcHour, "00") & ":" & Format$(utcMinute, "00") & ":" & Format$(utcSecond, "00")
+End
+
+
+'================================================================
+Sub GregDataInit()
+  GregMoLens[0] = 0
+  GregMoLens[1] = 31
+  GregMoLens[2] = 28
+  GregMoLens[3] = 31
+  GregMoLens[4] = 30
+  GregMoLens[5] = 31
+  GregMoLens[6] = 30
+  GregMoLens[7] = 31
+  GregMoLens[8] = 31
+  GregMoLens[9] = 30
+  GregMoLens[10] = 31
+  GregMoLens[11] = 30
+  GregMoLens[12] = 31
+  
+  GregMoNames[0] = "ERROR!"
+  GregMoNames[1] = "January"
+  GregMoNames[2] = "February"
+  GregMoNames[3] = "March"
+  GregMoNames[4] = "April"
+  GregMoNames[5] = "May"
+  GregMoNames[6] = "June"
+  GregMoNames[7] = "July"
+  GregMoNames[8] = "August"
+  GregMoNames[9] = "September"
+  GregMoNames[10] = "October"
+  GregMoNames[11] = "November"
+  GregMoNames[12] = "December"
+  
+  GregWeekdays[0] = "Sunday"
+  GregWeekdays[1] = "Monday"
+  GregWeekdays[2] = "Tuesday"
+  GregWeekdays[3] = "Wednesday"
+  GregWeekdays[4] = "Thursday"
+  GregWeekdays[5] = "Friday"
+  GregWeekdays[6] = "Saturday"
+End Sub
+
+Public Function GregDateStringFromJD(JD As Float) As String
+  Dim G As ObDate
+  Dim txt As String
+  G = GregDateFromJD(JD)
+  txt = GregDateString(G.iMonth, G.iDay, G.iYear) & ", " & TimeString(G)
+  If JD <= 2299160.5 Then txt = "UNSUPPORTED" 'Gregorian epoch = Fri, 15 Oct 1582
+  Return txt
+End
+
+Public Function GregYearIsLeapYear(InYear As Integer) As Boolean
+  Dim FourthYrRem, HundredthYrRem, FourHundredthYrRem As Float
+  Dim LeapYear As Boolean
+  Dim GregYear As Integer
+  
+  'Adjust for current OB dating system, where
+  'OB Year 0 = 1 BCE and OB Year -3 should be a leap year (4 BCE)
+  'Of course, the Gregorian calendar doesn't technically
+  'extend that far back anyway.
+  If InYear < 0 Then
+    GregYear = InYear - 1
+  Else
+    GregYear = InYear
+  End If
+  
+  FourthYrRem = GregYear Mod 4
+  HundredthYrRem = GregYear Mod 100
+  FourHundredthYrRem = GregYear Mod 400
+  
+  If FourthYrRem = 0 Then
+    '4th year
+    LeapYear = True
+    
+    If HundredthYrRem = 0 Then
+      If FourHundredthYrRem = 0 Then
+        '4th, 100th, and 400th
+        LeapYear = True
+      Else
+        '4th, 100th, NOT 400th
+        LeapYear = False
+      End If
+    End If
+    
+  Else
+    'Not 4th
+    LeapYear = False
+  End If
+  
+  Return LeapYear
+End Function
+
+Public Function GregDOYFromJD(JD As Float) As Integer
+  Dim G As New ObDate
+  G = GregDateFromJD(JD)
+  Return GregDOYFromGregDate(G.iYear, G.iMonth, G.iDay)
+End
+
+Public Function GregDOYFromGregDate(TheYear As Integer, TheMonth As Integer, TheDay As Integer) As Integer
+  Dim i, Days As Integer
+
+  
+  For i = 1 To 12
+    ActualMoLens[i] = GregMoLens[i]
+  Next
+  
+  Days = 0
+  
+  If GregYearIsLeapYear(TheYear) Then
+    ActualMoLens[2] = 29
+  End If
+  
+  For i = 1 To TheMonth
+    Days = Days + ActualMoLens[i - 1]
+  Next
+  
+  Days = Days + TheDay
+  
+  Return Days
+End Function
+
+Public Function GregDateFromJD(JD As Float) As ObDate
+  Dim l, n, i, j, d, m, y As Integer
+  Dim OutDate, T As ObDate
+  Dim AdjJD As Float
+  Dim iWeekday As Integer
+  Dim GregStr As String
+  
+  OutDate = New ObDate
+  
+  AdjJD = JD + 0.5
+  If LocalFlag Then AdjJD = AdjJD + timezone / 24
+  
+   l = AdjJD + 68569
+   n = Int((4 * l) / 146097)
+   l = l - Int((146097 * n + 3) / 4)
+   i = Int((4000 * (l + 1)) / 1461001)
+   l = l - Int((1461 * i) / 4) + 31
+   j = Int((80 * l) / 2447)
+   d = l - Int((2447 * j) / 80)
+   l = Int(j / 11)
+   m = j + 2 - (12 * l)
+   y = 100 * (n - 49) + i + l
+   
+   OutDate.iYear = y
+   OutDate.iMonth = m
+   OutDate.iDay = d
+   
+   T = HMSTimeFromDayFrac(JDFrac(AdjJD))
+   OutDate.iHour = T.iHour
+   OutDate.iMinute = T.iMinute
+   OutDate.iSecond = T.iSecond
+   
+   OutDate.iWeekDay = GregWeekdayFromJD(AdjJD)
+   OutDate.sCalendar = "Gregorian"
+  
+  Return OutDate
+End
+
+Function GregWeekdayFromJD(JD As Float) As Integer
+  'Returns UTC weekday
+  Return FloatMod(JD + 1.5, 7)
+End Function
+
+Function GregNthWeekdayFromDate(N As Integer, iWeekDay As Integer, TheDate As ObDate) As Float
+  Dim JD, Result As Float
+  
+  'Returns JD of the Nth weekday (specified by Weekday)
+  'before/after the Gregorian date TheDate.
+  'If N >= 0 then return Nth weekday AFTER (not on or after) TheDate.
+  'If N < 0 then return Nth weekday BEFORE (not on or before) TheDate.
+  
+  'Cribbed from Dershowitz and Reingold, along with companion fns.
+  'Note that there seems to be an off-by-one bug in D&R.
+  
+  JD = JDFromGregDate(TheDate.iYear, TheDate.iMonth, TheDate.iDay)
+  
+  If N < 0 Then
+    Result = ((N + 1) * 7) + GregWeekdayBefore(JD, iWeekDay)
+  Else
+    Result = ((N - 1) * 7) + GregWeekdayAfter(JD, iWeekDay)
+  End If
+  
+  Return (Result)
+End Function
+
+Function GregWeekdayBefore(JD As Float, iWeekDay As Integer) As Float
+  Return GregWeekdayOnOrBefore(JD - 1, iWeekDay)
+End Function
+
+Function GregWeekdayAfter(JD As Float, iWeekDay As Integer) As Float
+  Return GregWeekdayOnOrBefore(JD + 7, iWeekDay)
+End Function
+
+Function GregWeekdayOnOrBefore(JD As Float, iWeekDay As Integer) As Float
+  Return JD - GregWeekdayFromJD(JD - iWeekDay)
+End Function
+
+Public Function Civil2DayFrac(h As Integer, m As Integer, s As Integer) As Float
+  Return FMain.FloatMod(((h / 24) + (m / 1440) + (s / 86400)), 1)
+End
+
+Function GregYearName(InYear As Integer) As String
+  Dim OutYear As Integer
+  Dim BCEFlag As Boolean
+  Dim Result As String
+  
+  If InYear <= 0 Then
+    OutYear = - (InYear - 1)
+    BCEFlag = True
+  Else
+    OutYear = InYear
+    BCEFlag = False
+  End If
+  
+  If BCEFlag Then
+    Result = Str(OutYear) & " B.C.E."
+  Else
+    Result = Str(OutYear) & " C.E."
+  End If
+  
+  Return Result
+  
+End Function
+
+Function GregDateString(GregMonth As Integer, GregDay As Integer, GregYear As Integer) As String
+  Dim MonthName, WeekdayName, GregStr As String
+  Dim JD As Float
+  Dim iWeekday As Integer
+  
+  MonthName = GregMoNames[GregMonth]
+  
+  JD = JDFromGregDate(GregYear, GregMonth, GregDay)
+  iWeekDay = GregWeekdayFromJD(JD)
+  WeekdayName = GregWeekdays[iWeekDay]
+  
+  GregStr = WeekdayName & ", " & Str(GregDay) & " " & MonthName & " "
+  GregStr = GregStr & GregYearName(GregYear)
+  Return GregStr
+End Function
+
+Public Function GregDateIsValid(GregYear As Integer, GregMonth As Integer, GregDay As Integer) As Boolean
+  Dim MonthLen As Integer
+  ' DIM JD AS Float
+  Dim OKStatus As Boolean
+  
+  OKStatus = True
+  
+  If GregMonth < 1 Or GregMonth > 12 Then OKStatus = False
+  
+  If GregMonth = 2 And GregYearIsLeapYear(GregYear) Then
+    MonthLen = 29
+  Else
+    MonthLen = FMain.GregMoLens[GregMonth]
+  End If
+  
+  If (GregDay < 1) Or (GregDay > MonthLen) Then OKStatus = False
+  
+  Return OKStatus
+End Function
+
+Public Function CivilTimeIsValid(iHour As Integer, iMinute As Integer, iSecond As Integer) As Boolean
+  Dim OKStatus As Integer
+  
+  OKStatus = True
+  If (iHour < 0) Or (iHour > 23) Then OKStatus = False
+  If (iMinute < 0) Or (iMinute > 59) Then OKStatus = False
+  If (iSecond < 0) Or (iSecond > 59) Then OKStatus = False
+  
+  Return OKStatus
+End
+
+'===========================================================================
+'28-Hour Day
+
+Public Function Hour28DayStrFromJD(JD As Float) As String
+  Dim h28 As Float
+  h28 = HourOfWeek28()
+  Return Weekday28(h28) & ", " & Hour28(h28)
+End
+
+Public Function HourOfWeek28() As Float
+  Dim DayOfWeek As Integer
+  Dim dayfrac As Float
+  Dim how As Float
+  
+  DayOfWeek = (WeekDay(Now) - 1 + 7) Mod 7
+  dayfrac = Time(Now)
+  how = ((DayOfWeek + dayfrac) * 24)
+
+  Return how
+End
+
+Public Function Weekday28(HourOfWeek As Float) As String
+  Dim wd28 As Integer
+  Dim sWD28 As String
+
+  wd28 = Int(HourOfWeek / 28)
+
+  Select wd28
+    Case 0
+      sWD28 = "Tue"
+    Case 1
+      sWD28 = "Wed"
+    Case 2
+      sWD28 = "Thu"
+    Case 3
+      sWD28 = "Fri"
+    Case 4
+      sWD28 = "Sat"
+    Case 5
+      sWD28 = "Sun"
+  End Select
+  Return sWD28
+End
+
+Public Function Hour28(HourOfWeek As Float) As String
+  Dim h28, M As Integer
+  Dim activity, MinStr As String
+  
+  h28 = FMain.FloatMod(HourOfWeek, 28)
+  
+  If h28 >= 0 And h28 < 2 Then activity = "morning"
+
+  If h28 >= 2 And h28 < 12 Then
+    If HourOfWeek >= 96 Then
+      'weekend
+      activity = "free"
+    Else
+      'work day
+      activity = "work"
+    End If
+  End If
+
+  If h28 >= 12 And h28 < 19 Then activity = "free"
+  If h28 >= 19 And h28 <= 27 Then activity = "sleep"
+  
+  M = Minute(Now)
+  MinStr = Str$(M)
+  If M < 10 Then MinStr = "0" & MinStr
+
+  Return Str$(h28) & ":" & MinStr & " (" & activity & ")"
+End
+
+'===========================================================================
+
+Sub BahaiDataInit()
+  Dim i As Integer
+  
+  '[x,0] are Arabic names
+  BahaiDayNames[1, 0] = "Bahá"
+  BahaiDayNames[2, 0] = "Jalál"
+  BahaiDayNames[3, 0] = "Jamál"
+  BahaiDayNames[4, 0] = "‘Aẓamat"
+  BahaiDayNames[5, 0] = "Núr"
+  BahaiDayNames[6, 0] = "Raḥmat"
+  BahaiDayNames[7, 0] = "Kalimát"
+  BahaiDayNames[8, 0] = "Kamál"
+  BahaiDayNames[9, 0] = "Asmá’"
+  BahaiDayNames[10, 0] = "‘Izzat"
+  BahaiDayNames[11, 0] = "Mashíyyat"
+  BahaiDayNames[12, 0] = "‘Ilm"
+  BahaiDayNames[13, 0] = "Qudrat"
+  BahaiDayNames[14, 0] = "Qawl"
+  BahaiDayNames[15, 0] = "Masá’il"
+  BahaiDayNames[16, 0] = "Sharaf"
+  BahaiDayNames[17, 0] = "Sulṭán"
+  BahaiDayNames[18, 0] = "Mulk"
+  BahaiDayNames[19, 0] = "‘Alá’"
+  
+    '[x,0] are Arabic names
+  BahaiDayNames[1, 1] = "Splendour"
+  BahaiDayNames[2, 1] = "Glory"
+  BahaiDayNames[3, 1] = "Beauty"
+  BahaiDayNames[4, 1] = "Grandeur"
+  BahaiDayNames[5, 1] = "Light"
+  BahaiDayNames[6, 1] = "Mercy"
+  BahaiDayNames[7, 1] = "Words"
+  BahaiDayNames[8, 1] = "Perfection"
+  BahaiDayNames[9, 1] = "Names"
+  BahaiDayNames[10, 1] = "Might"
+  BahaiDayNames[11, 1] = "Will"
+  BahaiDayNames[12, 1] = "Knowledge"
+  BahaiDayNames[13, 1] = "Power"
+  BahaiDayNames[14, 1] = "Speech"
+  BahaiDayNames[15, 1] = "Questions"
+  BahaiDayNames[16, 1] = "Honour"
+  BahaiDayNames[17, 1] = "Sovereignty"
+  BahaiDayNames[18, 1] = "Dominion"
+  BahaiDayNames[19, 1] = "Loftiness"
+  
+  'Months are named same as days and are all 19 days long
+  For i = 1 To 18
+    BahaiMoNames[i, 0] = BahaiDayNames[i, 0]
+    BahaiMoNames[i, 1] = BahaiDayNames[i, 1]
+    BahaiMoLens[i, 0] = 19
+    BahaiMoLens[i, 1] = 19
+  Next
+
+  'Intercalary Period, which lengthens in leapyears
+  BahaiMoNames[19, 0] = "Ayyám-i-Há"
+  BahaiMoNames[19, 1] = "The Days of Há"
+  BahaiMoLens[19, 0] = 4
+  BahaiMoLens[19, 1] = 5
+  
+  'Our month #20 is officially Baha'i month #19;
+  'Intercalary Period does not count as official month
+  BahaiMoNames[20, 0] = BahaiDayNames[19, 0]
+  BahaiMoNames[20, 1] = BahaiDayNames[19, 1]
+  BahaiMoLens[20, 0] = 19
+  BahaiMoLens[20, 1] = 19
+  
+  BahaiWeekdays[0, 0] = "Jalál"
+  BahaiWeekdays[1, 0] = "Jamál"
+  BahaiWeekdays[2, 0] = "Kamál"
+  BahaiWeekdays[3, 0] = "Fiḍál"
+  BahaiWeekdays[4, 0] = "‘Idál"
+  BahaiWeekdays[5, 0] = "Istijlál"
+  BahaiWeekdays[6, 0] = "Istiqlál"
+  
+  BahaiWeekdays[0, 1] = "Glory"
+  BahaiWeekdays[1, 1] = "Beauty"
+  BahaiWeekdays[2, 1] = "Perfection"
+  BahaiWeekdays[3, 1] = "Grace"
+  BahaiWeekdays[4, 1] = "Justice"
+  BahaiWeekdays[5, 1] = "Majesty"
+  BahaiWeekdays[6, 1] = "Independence"
+  
+  BahaiYearNames[1, 0] = "Alif"
+  BahaiYearNames[2, 0] = "Bá’"
+  BahaiYearNames[3, 0] = "Ab"
+  BahaiYearNames[4, 0] = "Dál"
+  BahaiYearNames[5, 0] = "Báb"
+  BahaiYearNames[6, 0] = "Váv"
+  BahaiYearNames[7, 0] = "Abad"
+  BahaiYearNames[8, 0] = "Jád"
+  BahaiYearNames[9, 0] = "Bahá'"
+  BahaiYearNames[10, 0] = "Ḥubb"
+  BahaiYearNames[11, 0] = "Bahháj"
+  BahaiYearNames[12, 0] = "Javáb"
+  BahaiYearNames[13, 0] = "Aḥad"
+  BahaiYearNames[14, 0] = "Vahháb"
+  BahaiYearNames[15, 0] = "Vidád"
+  BahaiYearNames[16, 0] = "Badí‘"
+  BahaiYearNames[17, 0] = "Bahí"
+  BahaiYearNames[18, 0] = "Abhá"
+  BahaiYearNames[19, 0] = "Váḥid"
+  
+  BahaiYearNames[1, 1] = "A"
+  BahaiYearNames[2, 1] = "B"
+  BahaiYearNames[3, 1] = "Father"
+  BahaiYearNames[4, 1] = "D"
+  BahaiYearNames[5, 1] = "Gate"
+  BahaiYearNames[6, 1] = "V"
+  BahaiYearNames[7, 1] = "Eternity"
+  BahaiYearNames[8, 1] = "Generosity"
+  BahaiYearNames[9, 1] = "Splendour"
+  BahaiYearNames[10, 1] = "Love"
+  BahaiYearNames[11, 1] = "Delightful"
+  BahaiYearNames[12, 1] = "Answer"
+  BahaiYearNames[13, 1] = "Single"
+  BahaiYearNames[14, 1] = "Bountiful"
+  BahaiYearNames[15, 1] = "Affection"
+  BahaiYearNames[16, 1] = "Beginning"
+  BahaiYearNames[17, 1] = "Luminous"
+  BahaiYearNames[18, 1] = "Most Luminous"
+  BahaiYearNames[19, 1] = "Unity"
+End Sub
+
+Public Function BahaiStringFromJD(JD As Float) As String
+  Return BahaiDateString(BahaiDateFromJD(JD))
+End Function
+
+Public Function BadiStringFromJD(JD As Float) As String
+  Return BadiDateString(BahaiDateFromJD(JD))
+End Function
+
+Function BahaiDateFromJD(JD As Float) As ObDate
+  Dim m, LeapFlag, i, PrevDays, NextMonthStart, DayOfMonth As Integer
+  Dim BahaiYear, BahaiDOY, AdjustedDOY As Integer
+  Dim iWeekday As Integer
+  Dim sd As String
+  Dim G, B, Jan1st, WRD_Date As ObDate
+  Dim GregDOY As Integer
+  Dim WRD_JD As Float
+  Dim Vahid, Kull_i_Shay, YearNum, gm, gd As Integer
+  Dim gLeap, bLeap As Boolean
+  
+  B = New ObDate
+  G = New ObDate
+  G = GregDateFromJD(JD)
+  GregDOY = GregDOYFromGregDate(G.iYear, G.iMonth, G.iDay)
+  
+  BahaiYear = G.iYear - 1843
+  
+  gLeap = GregYearIsLeapYear(G.iYear)
+  bLeap = BahaiYearIsLeapYear(BahaiYear)
+  
+  If G.iMonth < 3 Then
+    BahaiYear = BahaiYear - 1
+  Else If G.iMonth = 3 And G.iDay < 21 Then
+    BahaiYear = BahaiYear - 1
+  End If
+  
+  gm = G.iMonth
+  gd = G.iDay
+  
+  ' - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  'Baha'i year starts on our March 21, the Baha'i "spring equinox observed".
+  'This is DOY 81 in leapyears and 80 in non-leapyears.
+  'Calculate the day of the Baha'i year:
+  
+  BahaiDOY = 0
+  
+  'IF LocalDecimalHour(JD) >= 18.00 THEN INC BahaiDOY
+  If LocalDecimalHour(JD) >= FMain.SunsetFromJD(CurJD) Then Inc BahaiDOY
+  
+  If gLeap Then
+    BahaiDOY += (GregDOY - 80 + 366) Mod 366
+  Else
+    BahaiDOY += (GregDOY - 79 + 365) Mod 365
+  End If
+  
+  If gLeap Then
+    If BahaiDOY = 0 Then
+      BahaiDOY = 366
+    End If
+  Else
+    If BahaiDOY = 0 Then
+      BahaiDOY = 365
+    End If
+  End If
+  
+  '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  'Calculate what month it is.
+  
+  If gLeap Then
+    LeapFlag = 1
+  Else
+    LeapFlag = 0
+  End If
+  
+  m = 0
+  NextMonthStart = 1
+  While m < 20
+    NextMonthStart = NextMonthStart + BahaiMoLens[m, LeapFlag]
+    If BahaiDOY >= NextMonthStart Then
+      m = m + 1
+    Else
+      Exit
+    End If
+  Wend
+
+  'Calculate the day of the month.
+  PrevDays = 0
+  For i = 1 To m
+    PrevDays = PrevDays + BahaiMoLens[i - 1, LeapFlag]
+  Next
+  DayOfMonth = BahaiDOY - PrevDays
+  
+  iWeekDay = FloatMod((JD + 3), 7)
+  
+  Kull_i_Shay = ((BahaiYear - 1) \ 361) + 1
+  
+  Vahid = FloatMod((((BahaiYear - 1) \ 19) + 1), 19)
+  If Vahid = 0 Then
+    Vahid = 19
+  End If
+  
+  YearNum = BahaiYear Mod 19
+  If YearNum = 0 Then
+    YearNum = 19
+  End If
+  
+  '- - - - - - Days of Observance - - - - - - - - - - - -
+  
+  If gd = 21 And gm = 3 Then
+    sd = "The Feast of Naw-Rúz (New Year)"
+  Else If gd = 21 And gm = 4 Then
+    sd = "First day of the Feast of Riḍván"
+  Else If gd = 22 And gm = 4 Then
+    sd = "Second day of the Feast of Riḍván"
+  Else If gd = 23 And gm = 4 Then
+    sd = "Third day of the Feast of Riḍván"
+  Else If gd = 24 And gm = 4 Then
+    sd = "Fourth day of the Feast of Riḍván"
+  Else If gd = 25 And gm = 4 Then
+    sd = "Fifth day of the Feast of Riḍván"
+  Else If gd = 26 And gm = 4 Then
+    sd = "Sixth day of the Feast of Riḍván"
+  Else If gd = 27 And gm = 4 Then
+    sd = "Seventh day of the Feast of Riḍván"
+  Else If gd = 28 And gm = 4 Then
+    sd = "Eighth day of the Feast of Riḍván"
+  Else If gd = 29 And gm = 4 Then
+    sd = "Ninth day of the Feast of Riḍván"
+  Else If gd = 30 And gm = 4 Then
+    sd = "Tenth day of the Feast of Riḍván"
+  Else If gd = 1 And gm = 5 Then
+    sd = "Eleventh day of the Feast of Riḍván"
+  Else If gd = 2 And gm = 5 Then
+    sd = "Twelfth day of the Feast of Riḍván"
+  Else If gd = 23 And gm = 5 Then
+    sd = "Declaration of the Báb"
+  Else If gd = 29 And gm = 5 Then
+    sd = "Ascension of Bahá'u'lláh"
+  Else If gd = 9 And gm = 7 Then
+    sd = "Martyrdom of the Báb"
+  Else If gd = 20 And gm = 10 Then
+    sd = "Birth of the Báb"
+  Else If gd = 12 And gm = 11 Then
+    sd = "Birth of Bahá'u'lláh"
+  Else If gd = 26 And gm = 11 Then
+    sd = "Day of the Covenant"
+  Else If gd = 28 And gm = 11 Then
+    sd = "Ascension of `Abdu'l-Bahá"
+  Else If gd = 11 And gm = 6 Then
+    sd = "Race Unity Day"
+  Else If gd = 19 And gm = 9 Then
+    sd = "International Day of Peace"
+  Else If gd = 2 And gm = 10 Then
+    sd = "Universal Children's Day"
+  Else If gd = 24 And gm = 10 Then
+    sd = "United Nations Day"
+  Else If gd = 10 And gm = 12 Then
+    sd = "United Nations Human Rights Day"
+  End If
+  
+  'World Religion Day, 3rd Sunday in January
+  
+  Jan1st = New ObDate
+  Jan1st = MakeDate(1, 1, G.iYear)
+  
+  WRD_JD = GregNthWeekdayFromDate(3, 0, Jan1st)
+  WRD_Date = New ObDate
+  WRD_Date = GregDateFromJD(WRD_JD)
+  
+  'Show_obDate(WRD_Date)
+  
+  If gd = WRD_Date.iDay And gm = WRD_Date.iMonth Then
+    sd = "World Religion Day"
+  End If
+
+  '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  
+  B.iDay = DayOfMonth
+  B.iMonth = m
+  B.iYear = BahaiYear
+  B.iWeekday = iWeekDay
+  B.sCalendar = "Bahá'í"
+  B.iCycle1 = YearNum
+  B.iCycle2 = Vahid
+  B.iCycle3 = Kull_i_Shay
+  B.sSpecialDay = sd
+  
+  Return B
+End Function
+
+Function BahaiYearIsLeapYear(BahaiYear As Integer) As Boolean
+  Dim GregYear As Integer
+  GregYear = BahaiYear + 1844
+  If GregYearIsLeapYear(GregYear) Then
+    Return True
+  Else
+    Return False
+  End If
+End Function
+
+Function BahaiDateString(B As ObDate) As String
+  Dim MoStr, DayStr, WeekdayStr, YearStr, Result, yStr As String
+  Dim VahidStr, Kull_i_Shay_Str, YearNameStr As String
+  Dim Proleptic As Boolean
+  
+  MoStr = BahaiMoNames[B.iMonth, 1]
+  DayStr = Str(B.iDay)
+  WeekdayStr = BahaiWeekdays[B.iWeekday, 1]
+  YearStr = Str(B.iYear) & " B.E."
+
+  Result = WeekdayStr & ", " & DayStr & " " & MoStr & " " & YearStr
+  If B.sSpecialDay <> "" Then Result = B.sSpecialDay & ", " & Result
+  Return Result
+End Function
+
+Function BadiDateString(B As ObDate) As String
+  Dim MoStr, DayStr, YearStr, Result As String
+  Dim VahidStr, Kull_i_Shay_Str As String
+  
+  DayStr = "The day " & BahaiDayNames[B.iDay, 0] & ", "
+  MoStr = "the month " & BahaiMoNames[B.iMonth, 0] & ", "
+  YearStr = "the year " & BahaiYearNames[B.iCycle1, 0] & ", "
+  VahidStr = OrdinalFromCardinal(B.iCycle2) & " Vahid of the "
+  Kull_i_Shay_Str = OrdinalFromCardinal(B.iCycle3) & " Kull'i'Shay"
+  
+  Result = DayStr & MoStr & YearStr & VahidStr & Kull_i_Shay_Str
+  If B.sSpecialDay <> "" Then Result = B.sSpecialDay & ": " & Result
+  Return Result
+End Function
+
+'==============================================================
+'Date codes: alternative ways of writing the Gregorian date
+
+Public Function SharpDate(JD As Float) As String
+  Dim sDateCode, sYear, sMonth, sDay, sCode As String
+  Dim G As New ObDate
+  Dim sDigits As New String[32]
+  sDigits = Split("0,1,2,3,4,5,6,7,8,9,A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V")
+  
+  G = GregDateFromJD(JD)
+  sYear = Right$(Str$(G.iYear), 2)
+  sMonth = sDigits[G.iMonth]
+  sDay = sDigits[G.iDay]
+  sCode = sYear & sMonth & sDay
+  
+  Return sCode
+End
+
+Public Function RDayCode(wd As Integer) As String
+  Dim daycode As String
+  Select wd
+    Case 0
+      daycode = "U"
+    Case 1
+      daycode = "M"
+    Case 2
+      daycode = "T"
+    Case 3
+      daycode = "W"
+    Case 4
+      daycode = "R"
+    Case 5
+      daycode = "F"
+    Case 6
+      daycode = "S"
+  End Select
+  Return daycode
+End
+
+Public Function RonDateFromJD(JD As Float) As String
+  Dim G As ObDate
+  Dim AdjJD As Float
+  Dim wd As Integer
+  G = GregDateFromJD(JD)
+  'ShowObDate(G)
+  Return RonDateFromGreg(G.iYear, G.iMonth, G.iDay)
+End
+
+Public Function RonDateFromGreg(GregYear As Integer, GregMonth As Integer, GregDay As Integer) As String
+  Dim RonStr As String
+  Dim JD As Float
+  Dim iWeekday As Integer
+  
+  JD = JDFromGregDate(GregYear, GregMonth, GregDay)
+  iWeekDay = GregWeekdayFromJD(JD)
+
+  Return Right$(Str$(GregYear), 2) & Format$(GregMonth, "00") & Format$(GregDay, "00") & RDayCode(iWeekDay)
+End Function
+
+'=======================================================
+
+Public Sub DiscoDataInit()
+  Dim i, j As Integer
+  
+  DiscoMoNames[1] = "Chaos"
+  DiscoMoNames[2] = "Discord"
+  DiscoMoNames[3] = "Confusion"
+  DiscoMoNames[4] = "Bureaucracy"
+  DiscoMoNames[5] = "Aftermath [International Relations]"
+  
+  DiscoWeekdays[0] = "Sweetmorn"
+  DiscoWeekdays[1] = "Boomtime"
+  DiscoWeekdays[2] = "Pungenday"
+  DiscoWeekdays[3] = "Prickle-Prickle"
+  DiscoWeekdays[4] = "Setting Orange"
+
+  DiscoApostleHolydays[1] = "Mungday"
+  DiscoApostleHolydays[2] = "Mojoday"
+  DiscoApostleHolydays[3] = "Syaday"
+  DiscoApostleHolydays[4] = "Zaraday"
+  DiscoApostleHolydays[5] = "Maladay"
+  
+  DiscoSeasonHolydays[1] = "Chaoflux"
+  DiscoSeasonHolydays[2] = "Discoflux"
+  DiscoSeasonHolydays[3] = "Confuflux"
+  DiscoSeasonHolydays[4] = "Bureflux"
+  DiscoSeasonHolydays[5] = "Afflux"
+  
+  For i = 1 To 5
+    For j = 0 To 1
+      DiscoMoLens[i, j] = 73
+    Next
+  Next
+  
+  'Account for St. Tib's Day in leapyears
+  DiscoMoLens[1, 1] = 74
+  
+End Sub
+
+Sub IllumDataInit()
+  IllumMoNames[1] = "Verwirrung"
+  IllumMoNames[2] = "Zweitracht"
+  IllumMoNames[3] = "Unordnung"
+  IllumMoNames[4] = "Beamtennherrschaft"
+  IllumMoNames[5] = "Realpolitik"
+End Sub
+
+Public Function DiscoKlockString() As String
+  Dim utcHour, utcMinute, utcSecond, ElapsedMins, MinsPastThud, ThudDuration As Integer
+  Dim KlockHour, KlockMinute, KlockSecond As Integer
+  Dim InThud As Boolean
+  Dim KlockString As String
+  
+  ThudDuration = 115 'of your Earth minutes
+  'PRINT Hour(Now)
+  utcHour = CInt(Hour(Now) - timezone + 24) Mod 24
+  utcMinute = Minute(Now)
+  utcSecond = Second(Now)
+  
+  If utcHour < 5 Then
+    ElapsedMins = 37 + (18 * 60) + (utcHour * 60) + utcMinute
+  Else If utcHour = 5 And utcMinute < 23 Then
+    ElapsedMins = 1440 - (23 - utcMinute)
+  Else If utcHour = 5 And utcMinute >= 23
+    ElapsedMins = utcMinute - 23
+  Else 'utcHour > 5
+    ElapsedMins = 37 + (((utcHour - 5) - 1) * 60) + utcMinute
+  End If
+  
+  'test
+  'ElapsedMins = 115
+  
+  If ElapsedMins < ThudDuration '0-114
+    InThud = True
+    KlockHour = 0
+    KlockMinute = ElapsedMins \ 23
+    KlockSecond = ElapsedMins Mod 23
+  Else
+    InThud = False
+    MinsPastThud = ElapsedMins - ThudDuration
+    KlockHour = (MinsPastThud \ 5) + 1
+    KlockMinute = (MinsPastThud Mod 5)
+    KlockSecond = utcSecond \ 12
+  End If
+  
+  KlockString = Format$(Str$(KlockHour), "000") & ":" & Format$(Str$(KlockMinute), "00") & ":" & Format$(Str$(KlockSecond), "00") & "(1)"
+  If InThud Then KlockString = KlockString & " THUD"
+  Return KlockString
+End
+
+
+Function DiscoDateFromJD(JD As Float) As ObDate
+  Dim m, LeapFlag, i, PrevDays, NextMonthStart, DayOfMonth As Integer
+  Dim dYear, dDOY, AdjustedDOY As Integer
+  Dim iWeekday As Integer
+  Dim SpecialDay As String
+  Dim g, DiscoDate As ObDate
+  
+  DiscoDate = New ObDate
+  SpecialDay = ""
+  PrevDays = 0
+  
+  g = New ObDate
+  g = GregDateFromJD(JD)
+  dDOY = GregDOYFromGregDate(g.iYear, g.iMonth, g.iDay)
+  
+  If FMain.GregYearIsLeapYear(g.iYear) Then
+    LeapFlag = 1
+  Else
+    LeapFlag = 0
+  End If
+  
+  'Calculate the weekday. 
+  'We do this first because St. Tib's Day falls in the middle of a month,
+  'and screws everything up. Hail Fuckin' Eris! Eep!
+  AdjustedDOY = dDOY
+  If LeapFlag = 1 Then
+    If dDOY = 60 Then
+      SpecialDay = "St. Tib's Day"
+    Else If dDOY > 60 Then
+      AdjustedDOY = dDOY - 1
+    End If
+  End If
+  iWeekDay = (AdjustedDOY - 1) Mod 5
+  
+  'Calculate what season it is. Chaos is counted as having 74 days 
+  '(including St. Tib's) in leap years.
+  m = 0
+  NextMonthStart = 1
+  While m < 5
+    NextMonthStart = NextMonthStart + DiscoMoLens[m, LeapFlag]
+    If AdjustedDOY >= NextMonthStart Then
+      m = m + 1
+    Else
+      Exit
+    End If
+  Wend
+  
+  'Calculate the day of the month.
+  'We force the calculation to use non-leapyear months,
+  'because we're already using an Adjusted DOY.
+  For i = 1 To m
+    PrevDays = PrevDays + DiscoMoLens[i - 1, 0]
+  Next
+  DayOfMonth = AdjustedDOY - PrevDays
+  
+  dYear = g.iYear + 1166
+  
+  DiscoDate.iMonth = m
+  DiscoDate.iDay = DayOfMonth
+  DiscoDate.iYear = dYear
+  DiscoDate.iWeekday = iWeekDay
+  DiscoDate.sSpecialDay = SpecialDay
+  DiscoDate.sCalendar = "Discordian"
+  
+  Return DiscoDate
+  
+End Function
+
+Public Function DiscoDateString(JD As Float) As String
+  Dim SeasonStr, WeekdayStr, YearStr, Holyday, OutStr, DayStr As String
+  Dim DiscoDate As ObDate
+  
+  DiscoDate = DiscoDateFromJD(JD)
+  
+  SeasonStr = DiscoMoNames[DiscoDate.iMonth]
+  WeekdayStr = DiscoWeekdays[DiscoDate.iWeekday]
+  YearStr = Str$(DiscoDate.iYear) & " P.O.E.E."
+  DayStr = Str$(DiscoDate.iDay)
+  
+  If DiscoDate.iDay = 5 Then
+    Holyday = DiscoApostleHolydays[DiscoDate.iMonth]
+  Else If DiscoDate.iDay = 50 Then
+    Holyday = DiscoSeasonHolydays[DiscoDate.iMonth]
+  Else
+    Holyday = ""
+  End If
+  
+  If DiscoDate.sSpecialDay <> "" Then
+    OutStr = DiscoDate.sSpecialDay & ", " & YearStr
+  Else If Holyday <> "" Then
+    OutStr = Holyday & ", " & WeekdayStr & ", " & DayStr & " " & SeasonStr & " " & YearStr
+  Else
+    OutStr = WeekdayStr & ", " & DayStr & " " & SeasonStr & " " & YearStr
+  End If
+  
+  Return OutStr
+End Function
+
+Public Function IllumDateStringFromJD(JD As Float) As String
+  Return IllumDateString(DiscoDateFromJD(JD))
+End
+
+Public Function IllumDateString(DiscoDate As ObDate) As String
+  Dim SeasonStr, YearStr, OutStr As String
+  Dim GregYear, IllumYear As Integer
+  
+  GregYear = DiscoDate.iYear - 1166
+  IllumYear = GregYear + 4000
+  YearStr = Str(IllumYear) & " A.L."
+  
+  SeasonStr = IllumMoNames[DiscoDate.iMonth]
+  
+  If DiscoDate.sSpecialDay <> "" Then
+    OutStr = "Heiligefliegendekinderscheissetag, " & YearStr
+  Else
+    OutStr = Str(DiscoDate.iDay) & " " & SeasonStr & " " & YearStr
+  End If
+  
+  Return OutStr
+End Function
+
+'==============================================================
+Sub EldarDataInit()
+  Dim i As Integer
+  
+  '[x,0] is Quenya
+  EldarMoNames[1, 0] = "Yestaré"
+  EldarMoNames[2, 0] = "Tuilë"
+  EldarMoNames[3, 0] = "Lairë"
+  EldarMoNames[4, 0] = "Yávië"
+  EldarMoNames[5, 0] = "Enderi"
+  EldarMoNames[6, 0] = "Quellë"
+  EldarMoNames[7, 0] = "Hrívë"
+  EldarMoNames[8, 0] = "Coirë"
+  EldarMoNames[9, 0] = "Mettaré"
+  
+  '[x,1] is Sindarin
+  '[x,2] is English
+  EldarMoNames[1, 2] = "First Day"
+  EldarMoNames[2, 2] = "Spring"
+  EldarMoNames[3, 2] = "Summer"
+  EldarMoNames[4, 2] = "Autumn"
+  EldarMoNames[5, 2] = "Middle Days"
+  EldarMoNames[6, 2] = "Fading"
+  EldarMoNames[7, 2] = "Winter"
+  EldarMoNames[8, 2] = "Stirring"
+  EldarMoNames[9, 2] = "Last Day"
+
+  'Beginnings of months in non-leap year
+  EldarMoStarts[1, 0] = 1
+  EldarMoStarts[2, 0] = 2
+  EldarMoStarts[3, 0] = 56
+  EldarMoStarts[4, 0] = 128
+  EldarMoStarts[5, 0] = 182
+  EldarMoStarts[6, 0] = 185
+  EldarMoStarts[7, 0] = 239
+  EldarMoStarts[8, 0] = 311
+  EldarMoStarts[9, 0] = 365
+
+  'Calculate leap year month starts
+  For i = 1 To 9
+    If i > 5 Then
+      EldarMoStarts[i, 1] = EldarMoStarts[i, 0] + 3
+    Else
+      EldarMoStarts[i, 1] = EldarMoStarts[i, 0]
+    End If
+  Next
+  
+  EldarWeekdays[0, 0] = "Elenya"
+  EldarWeekdays[1, 0] = "Anarya"
+  EldarWeekdays[2, 0] = "Isilya"
+  EldarWeekdays[3, 0] = "Alduya"
+  EldarWeekdays[4, 0] = "Menelya"
+  EldarWeekdays[5, 0] = "Valanya"
+End Sub
+
+Function EldarDOYFromGregDOYAndYear(DOY As Integer, iYear As Integer) As Integer
+  Dim IDOY As Integer
+  
+  'MsgBox str((Year-1) mod 12)
+  
+  Select Case (iYear - 1 + 24000) Mod 12
+    
+  Case 1
+    'Yestare = DOY 89
+    IDOY = (DOY - 88) Mod 365
+  Case 2
+    'Yestare = DOY 89
+    IDOY = (DOY - 88) Mod 365
+  Case 3
+    'Yestare = DOY 89
+    IDOY = (DOY - 88) Mod 365
+    
+  Case 4
+    'Gregorian leap year #1
+    'Yestare falls back one day to DOY 88
+    IDOY = (DOY - 87) Mod 366
+    
+    'Non-leap years
+  Case 5
+    IDOY = (DOY - 87) Mod 365
+  Case 6
+    IDOY = (DOY - 87) Mod 365
+  Case 7
+    IDOY = (DOY - 87) Mod 365
+    
+  Case 8
+    'Gregorian leap year #2
+    'Yestare falls back another day to DOY 87
+    IDOY = (DOY - 86) Mod 366
+    
+    'Non-leap years
+  Case 9
+    IDOY = (DOY - 86) Mod 365
+  Case 10
+    IDOY = (DOY - 86) Mod 365
+  Case 11
+    IDOY = (DOY - 86) Mod 365
+    
+  Case 0
+    'Gregorian leap year # 3
+    '12th year = Imladris leap year
+    'Yestare falls back another day to DOY 86
+    
+    'REVIEW: Remember to implement Float endere
+    'and NO Float endere at end of yen
+    IDOY = (DOY - 85) Mod 366
+    
+  ' ELSE
+  '   'Error
+  '   IDOY = -555
+    
+  End Select
+  
+  If IDOY <= 0 Then
+    IDOY = IDOY + 365
+  End If
+  
+  Return (IDOY)
+  
+End Function
+
+Function EldarYearFromGregDOYAndYear(DOY As Integer, gYear As Integer) As Integer
+  Dim iYear As Integer
+  
+  iYear = gYear
+  
+  Select Case (gYear - 1 + 24000) Mod 12
+    
+  Case 1
+    If DOY < 89 Then
+      iYear = gYear - 1
+    End If
+  Case 2
+    If DOY < 89 Then
+      iYear = gYear - 1
+    End If
+  Case 3
+    If DOY < 89 Then
+      iYear = gYear - 1
+    End If
+    
+  Case 4
+    'Yestare falls back one day in year 4
+    If DOY < 88 Then
+      iYear = gYear - 1
+    End If
+  Case 5
+    If DOY < 88 Then
+      iYear = gYear - 1
+    End If
+  Case 6
+    If DOY < 88 Then
+      iYear = gYear - 1
+    End If
+  Case 7
+    If DOY < 88 Then
+      iYear = gYear - 1
+    End If
+    
+  Case 8
+    'Yestare falls back another day in year 8
+    If DOY < 87 Then
+      iYear = gYear - 1
+    End If
+  Case 9
+    If DOY < 87 Then
+      iYear = gYear - 1
+    End If
+  Case 10
+    If DOY < 87 Then
+      iYear = gYear - 1
+    End If
+  Case 11
+    If DOY < 87 Then
+      iYear = gYear - 1
+    End If
+    
+  Case 0
+    'Yestare falls back another day in year 12
+    If DOY < 86 Then
+      iYear = gYear - 1
+    End If
+    
+  ' ELSE
+  '   'Error
+  '   iYear = -555
+    
+  End Select
+  
+  Return (iYear)
+  
+End Function
+
+Public Function EldarDateFromJD(JD As Float) As String
+  Dim iYear, iDOY, iMonth As Integer
+  Dim Result As String
+  Dim SpecialDay, MoName, YearStr, WeekdayStr As String
+  Dim LeapFlag, DayOfImladrisMonth, iWeekDay As Integer
+  Dim OmitWeekday As Boolean
+  Dim AdjJD As Float
+  Dim GregDate As ObDate
+  Dim DOY As Integer
+  
+  GregDate = New ObDate
+  GregDate = GregDateFromJD(JD)
+  DOY = GregDOYFromGregDate(GregDate.iYear, GregDate.iMonth, GregDate.iDay)
+  
+  iYear = EldarYearFromGregDOYAndYear(DOY, GregDate.iYear)
+  iDOY = EldarDOYFromGregDOYAndYear(DOY, GregDate.iYear)
+  AdjJD = JD - 0.5
+  
+  Select Case iDOY
+  Case 1
+    SpecialDay = "Yestar (First Day)"
+  Case 365
+    SpecialDay = "Mettar (Last Day)"
+  Case Else
+    SpecialDay = ""
+  End Select
+  
+  'Is it an Imladris leap year?
+  If (iYear - 1) Mod 12 = 0 Then
+    LeapFlag = 1
+  Else
+    LeapFlag = 0
+  End If
+  
+  'Calculate the number of the month
+  iMonth = 0
+  While iMonth < 9
+    If iDOY >= EldarMoStarts[iMonth + 1, LeapFlag] Then
+       iMonth = iMonth + 1
+    Else
+      Exit
+    End If
+  Wend
+  
+  MoName = EldarMoNames[iMonth, 0]
+  
+  DayOfImladrisMonth = iDOY - EldarMoStarts[iMonth, LeapFlag] + 1
+  
+  'Yestare of Imladris Year 1 should be Elenya, first day of week.
+  'This is my rule, not Tolkien's, who gave no rule.
+  'In any case, we don't even know what the "real" Eldarin year is now!
+  iWeekDay = FloatMod(AdjJD + 4, 6)
+  WeekdayStr = EldarWeekdays[iWeekDay, 0]
+  
+  YearStr = " " & Str(iYear) & ", Calendar of Imladris"
+  
+  If SpecialDay = "" Then
+    Result = WeekdayStr & ", " & Str(DayOfImladrisMonth) & " " & MoName & YearStr
+  Else
+    Result = WeekdayStr & ", " & SpecialDay & YearStr
+  End If
+  
+  Return Result
+End Function
+
+'========================================================================
+'Fractional days and related systems
+
+Public Function LocalFractionalDay(JD As Float) As Float
+  Dim LocalFrac As Float
+  Dim MJD As Float
+  
+  MJD = MJDFromJD(JD)
+  LocalFrac = UniversalFractionalDay(JD) + (FMain.timezone / 24)
+  If LocalFrac < 0 Then LocalFrac = LocalFrac + 1
+  If LocalFrac > 1 Then LocalFrac = LocalFrac - 1
+  Print localfrac
+  Return LocalFrac
+End
+
+Public Function LocalDecimalHour(JD As Float) As Float
+  Return LocalFractionalDay(JD) * 24
+End
+
+Public Function UniversalFractionalDay(JD As Float) As Float
+  Dim MJD As Float
+  MJD = MJDFromJD(JD)
+  Return MJD - Int(MJD)
+End
+
+Public Function LocalHexDay(JD As Float) As Integer
+  Return LocalFractionalDay(JD) * 65536
+End
+
+Public Function UniversalHexDay(JD As Float) As Integer
+  Return UniversalFractionalDay(JD) * 65536
+End
+
+Public Function SwatchBeat(JD As Float) As Integer
+  Dim fBiel As Float
+  fBiel = FMain.FloatMod(UniversalFractionalDay(JD) + (1 / 24), 1)
+  Return Int(fBiel * 1000)
+End
+
+Public Function SwatchString(JD As Float) As String
+  Return "@" & Format$(SwatchBeat(JD), "000")
+End
+
+Public Sub NetDegrees(JD As Float) As Integer
+  Return Int(UniversalFractionalDay(JD) * 360)
+End
+
+Public Sub NetMinutes(JD As Float) As Integer
+  Return Int(((UniversalFractionalDay(JD) * 360) - NetDegrees(JD)) * 60)
+End
+
+Function DayFracFromDecimalTime(DecimalTime As Float) As Float
+  Return DecimalTime / 24.00
+End Function
+
+'========================================================================
+
+Sub ShireDataInit()
+  Dim i As Integer
+  
+  ShireMoNames[1] = "Afteryule"
+  ShireMoNames[2] = "Solmath"
+  ShireMoNames[3] = "Rethe"
+  ShireMoNames[4] = "Astron"
+  ShireMoNames[5] = "Thrimidge"
+  ShireMoNames[6] = "Forelithe"
+  ShireMoNames[7] = "Afterlithe"
+  ShireMoNames[8] = "Wedmath"
+  ShireMoNames[9] = "Halimath"
+  ShireMoNames[10] = "Winterfilth"
+  ShireMoNames[11] = "Blotmath"
+  ShireMoNames[12] = "Foreyule"
+  
+  ShireMoStarts[1, 0] = 2
+  ShireMoStarts[2, 0] = 32
+  ShireMoStarts[3, 0] = 62
+  ShireMoStarts[4, 0] = 92
+  ShireMoStarts[5, 0] = 122
+  ShireMoStarts[6, 0] = 152
+  ShireMoStarts[7, 0] = 185
+  ShireMoStarts[8, 0] = 215
+  ShireMoStarts[9, 0] = 245
+  ShireMoStarts[10, 0] = 275
+  ShireMoStarts[11, 0] = 305
+  ShireMoStarts[12, 0] = 335
+  
+  For i = 1 To 12
+    If i > 6 Then
+      ShireMoStarts[i, 1] = ShireMoStarts[i, 0] + 1
+    Else
+      ShireMoStarts[i, 1] = ShireMoStarts[i, 0]
+    End If
+  Next
+  
+  ShireWeekdays[0] = "Sterday"
+  ShireWeekdays[1] = "Sunday"
+  ShireWeekdays[2] = "Monday"
+  ShireWeekdays[3] = "Trewsday"
+  ShireWeekdays[4] = "Hevensday"
+  ShireWeekdays[5] = "Mersday"
+  ShireWeekdays[6] = "Highday"
+End Sub
+
+Public Function ShireDateFromJD(JD As Float) As String
+  Dim G As ObDate
+  G = GregDateFromJD(JD)
+  Return ShireDateFromGregDate(G.iYear, G.iMonth, G.iDay)
+End
+
+Public Function ShireDateFromGregDate(GregYear As Integer, GregMonth As Integer, GregDay As Integer) As String
+  Dim SRMo, SRDay, SRYear, LeapFlag As Integer
+  Dim MoName As String
+  Dim DayOfSRMonth As Integer
+  Dim GregLeapYear, SRLeapYear, OmitWeekday As Boolean
+  Dim SpecialDay, YearStr, iWeekDay, WeekdayStr As String
+  Dim PseudoJulian As Integer
+  
+  SpecialDay = ""
+  OmitWeekday = False
+  
+  PseudoJulian = GregDOYFromGregDate(GregYear, GregMonth, GregDay)
+  GregLeapYear = GregYearIsLeapYear(GregYear)
+  SRDay = ShireDOYFromGregDOYAndLeapYear(PseudoJulian, GregLeapYear)
+  
+  'Hobbit year begins 9 days earlier than ours,
+  'so adjust stated year accordingly
+  If SRDay >= 1 And SRDay <= 9 Then
+    SRYear = GregYear + 1
+  Else
+    SRYear = GregYear
+  End If
+  
+  SRLeapYear = GregYearIsLeapYear(SRYear)
+  
+  If SRLeapYear Then
+    LeapFlag = 1
+  Else
+    LeapFlag = 0
+  End If
+  
+  Select Case SRDay
+  Case 1
+    SpecialDay = "2 Yule"
+  Case 182
+    SpecialDay = "1 Lithe"
+  Case 183
+    SpecialDay = "Midyear's Day"
+    OmitWeekday = True
+  Case 184
+    If SRLeapYear Then
+      SpecialDay = "Overlithe"
+      OmitWeekday = True
+    Else
+      SpecialDay = "2 Lithe"
+    End If
+  Case 185
+    If SRLeapYear Then
+      SpecialDay = "2 Lithe"
+    End If
+  Case 365
+    If Not SRLeapYear Then
+      SpecialDay = "1 Yule"
+    End If
+  Case 366
+    If SRLeapYear Then
+      SpecialDay = "1 Yule"
+    End If
+  End Select
+  
+  SRMo = 0
+  While SRMo < 12
+    If SRDay >= ShireMoStarts[SRMo + 1, LeapFlag] Then
+       SRMo = SRMo + 1
+    Else
+      Exit
+    End If
+  Wend
+  
+  'Now that month has been calculated, calculate the day
+  If SRMo >= 1 And SRMo <= 12 Then
+    MoName = ShireMoNames[SRMo]
+    DayOfSRMonth = SRDay - ShireMoStarts[SRMo, LeapFlag] + 1
+  End If
+  
+  'Now calculate day of Hobbit week
+  iWeekDay = ShireWeekdayFromShireDOYAndLeapYear(SRDay, SRLeapYear)
+  WeekdayStr = iWeekDay & ", "
+  
+  YearStr = Str(SRYear) & " S.R."
+  
+  If SpecialDay = "" Then
+    Return (WeekdayStr & Str(DayOfSRMonth) & " " & MoName & " " & YearStr)
+  Else If OmitWeekday Then
+    Return (SpecialDay & ", " & YearStr)
+  Else
+    Return (WeekdayStr & SpecialDay & ", " & YearStr)
+  End If
+End Function
+
+Function ShireDOYFromGregDOYAndLeapYear(PseudoJulian As Integer, LeapYear As Boolean) As Integer
+  Dim SRDay As Integer
+  
+  SRDay = PseudoJulian + 9
+  
+  If SRDay > 365 Then
+    If LeapYear Then
+      If SRDay > 366 Then
+        SRDay = SRDay - 366
+      End If
+    Else
+      SRDay = SRDay - 365
+    End If
+  End If
+  
+  Return (SRDay)
+  
+End Function
+
+Function ShireWeekdayFromShireDOYAndLeapYear(SRDay As Integer, SRLeapYear As Boolean) As String
+  Dim iWeekday, AdjustedSRDay As Integer
+  Dim WeekdayName As String
+  
+  If SRDay > 183 Then
+    If SRLeapYear Then
+      AdjustedSRDay = SRDay - 2 + 6
+    Else
+      AdjustedSRDay = SRDay - 1 + 6
+    End If
+  Else
+    AdjustedSRDay = SRDay + 6
+  End If
+  
+  iWeekDay = AdjustedSRDay Mod 7
+  WeekdayName = ShireWeekdays[iWeekDay]
+  Return (WeekdayName)
+End Function
+
+'==============================================================
+'Stardates
+
+Public Function StardateFromJD(JD As Float) As String
+  Dim EpochJD, EpochMJD, fMJD, DaysDiff, StardaysDiff, Stardate As Float
+  Dim EpochIssue, Issue, StardaysPerIssue As Integer
+  
+  '2000 days in a stardate issue; 1000 "stardays" (tens column) @ 2 days each
+  '10 "starhours" (ones column) in a starday; 10,000 starhours in an issue
+  StardaysPerIssue = 1000
+  EpochJD = JDFromGregDate(2162, 01, 04)
+  EpochMJD = MJDFromJD(EpochJD)
+  EpochIssue = 0
+  fMJD = MJDFromJD(JD)
+  DaysDiff = (fMJD - EpochMJD)
+  StardaysDiff = DaysDiff / 2
+  Stardate = FloatMod(StardaysDiff, StardaysPerIssue) * 10 + 2.5
+  If Stardate < 0 Then Stardate = Stardate + 10000
+  Issue = Int(EpochIssue + (StardaysDiff / StardaysPerIssue))
+  If JD >= 2550185.5 Then
+    Return "UNSUPPORTED"
+  Else
+    Return "[" & Str$(Issue) & "]" & Left$(Format$(Stardate, "0000.00000"), 7)
+  End If
+End
+
+'==============================================================
+' World Calendar
+Sub WorldCalDataInit()
+  Dim i, j As Integer
+  
+  WorldCalMoLens[0, 0] = 0
+  WorldCalMoLens[1, 0] = 31
+  WorldCalMoLens[2, 0] = 30
+  WorldCalMoLens[3, 0] = 30
+  WorldCalMoLens[4, 0] = 31
+  WorldCalMoLens[5, 0] = 30
+  WorldCalMoLens[6, 0] = 30
+  WorldCalMoLens[7, 0] = 0
+  WorldCalMoLens[8, 0] = 31
+  WorldCalMoLens[9, 0] = 30
+  WorldCalMoLens[10, 0] = 30
+  WorldCalMoLens[11, 0] = 31
+  WorldCalMoLens[12, 0] = 30
+  WorldCalMoLens[13, 0] = 30
+  WorldCalMoLens[14, 0] = 1
+  
+  For i = 1 To 14
+    WorldCalMoLens[i, 1] = WorldCalMoLens[i, 0]
+  Next
+  
+  'Leap-year Day, W, 31 June
+  WorldCalMoLens[7, 1] = 1
+  
+  WorldCalMoNames[1] = "January"
+  WorldCalMoNames[2] = "February"
+  WorldCalMoNames[3] = "March"
+  WorldCalMoNames[4] = "April"
+  WorldCalMoNames[5] = "May"
+  WorldCalMoNames[6] = "June"
+  WorldCalMoNames[7] = "Leapyear Day"
+  WorldCalMoNames[8] = "July"
+  WorldCalMoNames[9] = "August"
+  WorldCalMoNames[10] = "September"
+  WorldCalMoNames[11] = "October"
+  WorldCalMoNames[12] = "November"
+  WorldCalMoNames[13] = "December"
+  WorldCalMoNames[14] = "World Day"
+  
+  WorldCalWeekdays[0] = "Sunday"
+  WorldCalWeekdays[1] = "Monday"
+  WorldCalWeekdays[2] = "Tuesday"
+  WorldCalWeekdays[3] = "Wednesday"
+  WorldCalWeekdays[4] = "Thursday"
+  WorldCalWeekdays[5] = "Friday"
+  WorldCalWeekdays[6] = "Saturday"
+  
+End Sub
+
+Public Function WorldCalStrFromJD(JD As Float) As String
+  Dim iDOY, iYear As Integer
+  Dim G As ObDate
+  G = New ObDate
+  
+  G = GregDateFromJD(JD)
+  iDOY = GregDOYFromGregDate(G.iYear, G.iMonth, G.iDay)
+  Return WorldCalDateFromGregDOYAndYear(iDOY, G.iYear)
+End
+
+Function WorldCalDateFromGregDOYAndYear(DOY As Integer, iYear As Integer) As String
+  Dim m, LeapFlag, i, PrevDays, NextMonthStart, DayOfMonth, AdjustedDOY As Integer
+  Dim iWeekday As Integer
+  Dim WeekdayName, SpecialDay, MonthName, WorldCalDateStr As String
+  
+  SpecialDay = ""
+  
+  If GregYearIsLeapYear(iYear) Then
+    LeapFlag = 1
+  Else
+    LeapFlag = 0
+  End If
+  
+  'Calculate the number of the month
+  m = 0
+  NextMonthStart = 1
+  While m < 14
+    NextMonthStart = NextMonthStart + WorldCalMoLens[m, LeapFlag]
+    If DOY >= NextMonthStart Then
+       m = m + 1
+    Else
+      Exit
+    End If
+  Wend
+  
+  For i = 1 To m
+    PrevDays = PrevDays + WorldCalMoLens[i - 1, LeapFlag]
+  Next
+  DayOfMonth = DOY - PrevDays
+  
+  MonthName = WorldCalMoNames[m]
+  
+  'Calculate WorldCal weekday
+  AdjustedDOY = DOY
+  If LeapFlag = 1 Then
+    If DOY = 183 Then
+      SpecialDay = "W, Leapyear Day"
+    Else If DOY > 183 Then
+      AdjustedDOY = DOY - 1
+    End If
+  End If
+  
+  iWeekDay = (AdjustedDOY - 1) Mod 7
+  
+  If AdjustedDOY = 365 Then
+    SpecialDay = "W, World Day"
+  Else
+    WeekdayName = WorldCalWeekdays[iWeekDay]
+  End If
+  
+  If SpecialDay = "" Then
+    WorldCalDateStr = WeekdayName & ", " & Str(DayOfMonth) & " " & MonthName & " " & GregYearName(iYear)
+  Else
+    WorldCalDateStr = SpecialDay & ", " & GregYearName(iYear)
+  End If
+  
+  Return WorldCalDateStr
+End Function
+
+'========================================================
+'Trig functions in degrees
+
+Function DegreesFromRadians(Radians As Float) As Float
+  Return Degrees(Radians / Pi * 180)
+End Function
+
+Function RadiansFromDegrees(Degs As Float) As Float
+  Return Degs * Pi / 180
+End Function
+
+Function SinD(Degrees As Float) As Float
+  Return Sin(RadiansFromDegrees(Degrees))
+End Function
+
+Function CosD(Degrees As Float) As Float
+  Return Cos(RadiansFromDegrees(Degrees))
+End Function
+
+Function TanD(Degrees As Float) As Float
+  Return Tan(RadiansFromDegrees(Degrees))
+End Function
+
+Function AtanD(TheInput As Float) As Float
+  Return DegreesFromRadians(ATan(TheInput))
+End Function
+
+Function AsinD(TheInput As Float) As Float
+  Return DegreesFromRadians(ASin(TheInput))
+End Function
+
+Function AcosD(TheInput As Float) As Float
+  Return DegreesFromRadians(ACos(TheInput))
+End Function
+
+Function Atan2D(y As Float, x As Float) As Float
+  Return DegreesFromRadians(ATan2(y, x))
+End Function
+
+Function Degrees(Theta As Float) As Float
+  Dim D As Float
+  
+  D = RealMod(Theta, 360)
+  
+  'If D is negative, it's now in the range of -360 to 0,
+  'so simply add +360
+  If D < 0 Then
+    D = D + 360
+  End If
+  
+  Return D
+End Function
+
+Function Atan2(y As Float, x As Float) As Float
+  Dim Result As Float
+  
+  'Returns its result in RADIANS
+  
+  If x > 0 Then
+    Result = ATan(y / x)
+  Else If x < 0 Then
+    Result = ATan(y / x) + Pi
+  Else If y > 0 Then
+    Result = Pi / 2
+  Else If y < 0 Then
+    Result = - Pi / 2
+  Else
+    Result = 0
+  End If
+  
+  Return Result
+End Function
+
+'==================================================================================
+'Astronomical functions
+
+Public Function SunsetFromJD(JD As Float) As Float
+   Dim G As New ObDate
+   G = GregDateFromJD(JD)
+   Return SunsetFromGreg(G.iYear, G.iMonth, G.iDay, FMain.Latitude, FMain.Longitude, timezone, 0)
+End Function
+
+'http://www.paulsadowski.com/Sadowski/suntimes.htm
+Public Function SunsetFromGreg(iYear As Integer, iMonth As Integer, iDay As Integer, latitude As Float, longitude As Float, TZ As Float, isdst As Integer) As String
+Dim d, n, i, w, m, l, e, e1, a, xv, yv, v, xs, ys, xe, ecl, lonsun, ye, ze, ra, Declination, h, r As Float
+Dim GMST0, UT_Sun_in_south, LHA, hour_rise, hour_set, min_rise, min_set As Float
+
+'calculate days since 2000 jan 1
+  d = (367 * (iYear) - Int((7 * ((iYear) + (((iMonth) + 9) / 12))) / 4) + Int((275 * (iMonth)) / 9) + (iDay) - 730530)
+
+' Orbital elements of the Sun:
+  N = 0.0
+  i = 0.0
+  w = 282.9404 + 4.70935E-5 * d
+
+  a = 1.000000
+  e = 0.016709 - 1.151E-9 * d
+
+  M = 356.0470 + 0.9856002585 * d
+  M = rev(M)
+
+  ecl = 23.4393 - 3.563E-7 * d
+  L = w + M
+  If (L < 0 Or L > 360) Then
+    L = rev(L)
+  End If
+
+' position of the Sun
+  E1 = M + e * (180 / Pi) * sind(M) * (1.0 + e * cosd(M))
+  xv = cosd(E1) - e
+  yv = Sqr(1.0 - e * e) * sind(E1)
+
+  v = atan2d(yv, xv)
+  r = Sqr(xv * xv + yv * yv)
+  lonsun = v + w
+  If (lonsun < 0 Or lonsun > 360) Then
+    lonsun = rev(lonsun)
+  End If
+  xs = r * cosd(lonsun)
+  ys = r * sind(lonsun)
+  xe = xs
+  ye = ys * cosd(ecl)
+  ze = ys * sind(ecl)
+  RA = atan2d(ye, xe)
+  Declination = atan2d(ze, (Sqr((xe * xe) + (ye * ye))))
+  h = -0.833
+
+  GMST0 = L + 180
+  If (GMST0 < 0 Or GMST0 > 360) Then
+    GMST0 = rev(GMST0)
+  End If
+
+  UT_Sun_in_south = (RA - GMST0 - longitude) / 15.0
+  If (UT_Sun_in_south < 0) Then
+    UT_Sun_in_south = UT_Sun_in_south + 24
+  End If
+
+  LHA = (sind(h) - (sind(latitude) * sind(Declination))) / (cosd(latitude) * cosd(Declination))
+  If (LHA > -1 And LHA < 1) Then
+    LHA = acosd(LHA) / 15
+  Else
+    Return "No sunrise,No sunset"
+  End If
+  hour_rise = UT_Sun_in_south - LHA
+  hour_set = UT_Sun_in_south + LHA
+  min_rise = Int((hour_rise - Int(hour_rise)) * 60)
+  min_set = Int((hour_set - Int(hour_set)) * 60)
+
+  hour_rise = (Int(hour_rise) + (TZ + isdst))
+  hour_set = (Int(hour_set) + (TZ + isdst))
+  If (min_rise < 10) Then
+    min_rise = Right("0000" & min_rise, 2)
+  End If
+  If (min_set < 10) Then
+    min_set = Right("0000" & min_set, 2)
+  End If
+  
+  'RETURN hour_rise & ":" & min_rise & "," & hour_set & ":" & min_set
+  
+  Return hour_set + min_set / 60
+End Function
+
+
+Function rev(q As Float) As Float
+Dim x As Float
+  x = (q - Int(q / 360.0) * 360.0)
+  If (x <= 0) Then
+  x = x + 360
+  End If
+  Return x
+End Function

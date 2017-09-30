@@ -1,0 +1,141 @@
+OffBeat, an offbeat, multicultural clock and calendar program.
+Copyright (C) 2012 Ron Hale-Evans.
+
+This file is part of OffBeat.
+
+OffBeat is free software: you can redistribute it and/or modify it 
+under the terms of the GNU Affero General Public License as published 
+by the Free Software Foundation, either version 3 of the License, or 
+(at your option) any later version.
+
+OffBeat is distributed in the hope that it will be useful, but 
+WITHOUT ANY WARRANTY; without even the implied warranty of 
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public 
+License along with OffBeat. If not, see 
+<http://www.gnu.org/licenses/>.
+
+===================================================================
+
+Introduction:
+
+The goal of OffBeat is to make you aware of many ways that people have measured time. It was originally inspired by Robert Anton Wilson's article "How to Live Eleven Days in Twenty-Four Hours." 
+
+Since it is easy to find software that shows the date in historical calendars (especially after the publication of Dershowitz and Reingold's Calendrical Calculations and their implementation in GNU Emacs), I have initially focused on unusual clocks and calendars, including ones from fiction. More historical calendars will likely be added later.
+
+Further information about the clocks in this program can be found by selecting the menu item "More about this timekeeping system". Most of the calendars are well-documented in Wikipedia. More documentation is forthcoming.
+
+===================================================================
+
+Technical Notes:
+
+OffBeat was originally programmed in REALbasic (a rapid application development environment similar to Visual Basic) under Mac OS 8 on an iMac and a Performa 6320CD, in 1998 and 1999. It was shelved for about 13 years when I became more interested in Linux and free/open-source software, then ported to Gambas 2, a similar RAD IDE, under Ubuntu 11.10 in 2011 and 2012. In September 2012, it was ported to Gambas 3.
+
+====================================================================
+
+Version History:
+
+1.2 (as yet unreleased)
+
+* Ported to Gambas 2 (http://gambas.sourceforge.net).
+
+* Added the 28-Hour Day, Discordian Time Flavor 1, Fractional Days, Hexadecimal Days, Truncated Julian Days, New Earth Time, the Sharp Date Code, rDates, day-of-year and sunset time in timestamp, and separate Badi (Bahá'í old-style) dates.
+
+* Added "clock radio mode" full-screen display showing local civil time and Modified Julian Day. After using this feature for several months, decided to make the two parallel time systems two different colors, for easier parsing when half-asleep.
+
+* Dropped all preferences handling, including timezone, DST, latitude, and longitude, but it will return in a later version. (The current version can detect timezone and daylight savings from existing system settings in any case.)
+
+* English names for Baha'i calendar.
+
+* Enabled online lookup of information about the current clock with the "More about this timekeeping system" menu option.
+
+=====
+
+1.1
+
+1999. Never released.
+
+* Added Discordian, Illuminati, and Bahá'í dates.
+
+* Fixed a bug whereby some weekdays were calculated wrong for Eldarin dates. FYI, OffBeat uses the rule that Yestaré of Eldarin year 1 (the Eldarin epoch) was Elenya, the first day of the week. This is my rule; Tolkien gave none. (It's bound to be arbitrary, since we don't know what year this "really" is in the Calendar of Imladris.) The previous version used this rule too, but got some weekdays wrong.
+
+* Made all calendars use DMY (day-month-year) form, rather than some of them using the MDY form common in the United States. All calendars from now on will use DMY, unless it is improper for that culture.
+
+=====
+
+1.0:
+
+Gregorian: Monday, January 25, 1999, 12:05:48 AM (UTC -08)
+World Calendar: Wednesday, January 25, 1999 C.E.
+Swatch Internet Time: @379 (1999-01-25 BMT)
+Shire Reckoning: Mersday, Solmath 3, 1999 S.R.
+Eldarin: Valanya, 65 Hrívë, 1998, Calendar of Imladris (after sundown)
+Stardate: [-30]2431.69
+
+Initial release under the name Many Moons, later determined to be potentially offensive. Supports the Gregorian calendar, civil time, the World Calendar, Swatch Internet Time, Shire Reckoning, the Eldarin Calendar of Imladris, and Stardates.
+
+===============================================================
+
+Possible Future Additions to OffBeat:
+
+New Clocks/Calendars:
+* Bells and watches (from ships and monasteries, respectively)
+* Collins Metric Time
+* Hora Terrae
+* ISO 8601
+* Jain
+* Martian timekeeping, including Kim Stanley Robinson's Mars Trilogy
+* Mission Elapsed Time, possibly in a number of units
+* My personal Discordian Time non-standard
+* 'Pataphysical Calendar
+* Positivist Calendar
+* Robert Anton Wilson's calendars
+* Stardate issues after TOS-style stardates
+
+General Improvements:
+* Biel Mean Time for Swatch Internet Time (re-add)
+* Bree names for Shire Reckoning
+* CE/BCE checkbox
+* Convert to and from any calendar in program (at least add Modified Julian Day input in the interim)
+* Elven years use should use Seventh Age Yen instead of CE years
+* Gambas timekeeping component (like a library)
+* Latitude and longitude preferences (re-add)
+* Preferences dialog (re-add)
+* Repeating alarms, possibly on a number of clocks
+* Sindarin and English names for the Eldarin calendar
+* Specifying the clocks in clock radio mode
+* "Visual" calendars (a grid, like a wall calendar)
+
+Known Bugs:
+* The accuracy of the Tolkien calendars has not been thoroughly checked since porting to Gambas
+* Elvish seasons should be in lower-case
+
+===========================================================================
+
+Credits:
+
+The code in OffBeat is mostly original, but thanks must go to:
+
+* The book Calendrical Calculations by Nachum Dershowitz and Edward Reingold, for the formula for calculating the Gregorian year from a Julian Day.
+
+* The Calendar FAQ, for the formula for calculating the Julian Day from a Gregorian date.
+
+* Gene Roddenberry and Paramount Pictures for Star Trek and stardates.
+
+* Andrew Main for devising a consistent system for stardates, and for providing stardate calculation code as a reference point (mostly useful in OffBeat for epochs and other constants).
+
+* J.R.R. Tolkien for Middle-earth, Shire Reckoning and the Calendar of Imladris.
+
+* Swatch for Swatch Internet Time.
+
+* The World Calendar Association for the World Calendar.
+
+* Pope Gregory XIII, Aloysius Lilius, Christopher Clavius, and a cast of billions, for the Gregorian calendar, implemented across most of Europe in the late 16th century, and still widely in use today.
+
+====================================================================
+
+Contact:
+
+For bugs, comments, questions, suggestions, or simple support, email the author, Ron Hale-Evans, at rwhe@ludism.org, or see his website at http://ron.ludism.org.

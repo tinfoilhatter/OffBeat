@@ -1,0 +1,87 @@
+# Gambas Form File 3.0
+{ Form Form 
+  MoveScaled(0,0,69,20)
+  Expand = True
+  AutoResize = True
+  { Clock Menu 
+    Text = ("Clocks")
+    { CivilLocal Menu 
+      Text = ("Civil (local)")
+    }
+    { TwentyEight Menu 
+      Text = ("28-Hour Day")
+    }
+    { Klock Menu 
+      Text = ("Discordian Klock")
+    }
+    { FractionalDayLocal Menu 
+      Text = ("Fractional day (local)")
+    }
+    { FractionalDayUniversal Menu 
+      Text = ("Fractional day (universal)")
+    }
+    { HexadecimalDayLocal Menu 
+      Text = ("Hexadecimal time (local)")
+    }
+    { HexadecimalDayUniversal Menu 
+      Text = ("Hexadecimal time (universal)")
+    }
+    { JulianDay Menu 
+      Text = ("Julian day")
+    }
+    { ModifiedJulianDay Menu 
+      Text = ("Modified Julian day")
+    }
+    { NewEarthTime Menu 
+      Text = ("New Earth Time (NET)")
+    }
+    { RDate Menu 
+      Text = ("RDate")
+    }
+    { SharpDateCode Menu 
+      Text = ("Sharp Date Code")
+    }
+    { Stardate Menu 
+      Text = ("Stardate")
+    }
+    { Swatch Menu 
+      Text = ("Swatch Internet Time")
+    }
+    { TruncatedJulianDay Menu 
+      Text = ("Truncated Julian day (NIST)")
+    }
+    { UTC Menu 
+      Text = ("UTC (Coordinated Universal Time)")
+    }
+  }
+  { Misc Menu 
+    Text = ("Misc")
+    { Timestamp Menu 
+      Text = ("Timestamp")
+    }
+    { ConvertDate Menu 
+      Text = ("Convert civil date/time...")
+    }
+    { ConvertJD Menu 
+      Text = ("Convert Julian day...")
+    }
+    { ClockRadio Menu 
+      Text = ("Clock radio mode")
+    }
+    { MoreAbout Menu 
+      Text = ("More about this timekeeping system")
+    }
+    { About Menu 
+      Text = ("About OffBeat")
+    }
+  }
+  { time Label 
+    MoveScaled(1,1,67,14)
+    Font = Font["Liberation Mono,Bold,+10"]
+    Expand = True
+    Alignment = Align.Center
+  }
+  { Timer1 #Timer 
+    #MoveScaled(0,0)
+  }
+}

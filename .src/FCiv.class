@@ -1,0 +1,38 @@
+' Gambas class file
+
+Public Sub _new()
+  DateIn.Value = Str$(Month(Now)) & "/" & Str$(Day(Now)) & "/" & Str$(Year(Now))
+  TimeIn.Value = Str$(Hour(Now)) & ":" & Str$(Minute(Now)) & ":" & Str$(Second(Now))
+  TZin.Value = Str$(FMain.timezone)
+End
+
+Public Sub OK_Click()
+  Dim JDin As Float
+  Dim theDate As String[]
+  Dim theTime As String[]
+  Dim y, mo, d, h, m, s As Integer
+  Dim tz As Float
+  
+  theDate = Split(DateIn.Text, "/", "", True)
+  theTime = Split(TimeIn.Text, ":", "", True)
+  
+  Print theDate, theTime
+  
+  mo = CInt(theDate[0])
+  d = CInt(theDate[1])
+  y = CInt(theDate[2])
+  h = CInt(theTime[0])
+  m = CInt(theTime[1])
+  s = CInt(theTime[2])
+  tz = CFloat(TZin.text)
+
+  If FMain.GregDateIsValid(y, mo, d) And FMain.CivilTimeIsValid(h, m, s) Then
+    JDin = FMain.JDFromGregDate(y, mo, d) + FMain.Civil2DayFrac(h, m, s) - (tz / 24) - 0.5
+    FCiv.Hide
+    FCal.CurJD = JDin
+    FCal.Timestamp
+    FCal.Show
+  Else
+    Message.Error("Not a valid civil time.")
+  End If
+End

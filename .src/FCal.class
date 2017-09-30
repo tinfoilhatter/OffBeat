@@ -1,0 +1,68 @@
+' Gambas class file
+
+'
+'OffBeat, an offbeat, multicultural clock and calendar program.
+'Copyright (C) 2012 Ron Hale-Evans.
+
+'This file is part of OffBeat.
+'
+'OffBeat is free software: you can redistribute it and/or modify it 
+'under the terms of the GNU Affero General Public License as published 
+'by the Free Software Foundation, either version 3 of the License, or 
+'(at your option) any later version.
+'
+'OffBeat is distributed in the hope that it will be useful, but 
+'WITHOUT ANY WARRANTY; without even the implied warranty of 
+'MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+'Affero General Public License for more details.
+'
+'You should have received a copy of the GNU Affero General Public 
+'License along with OffBeat. If not, see 
+'<http://www.gnu.org/licenses/>.
+
+Public Sunset As New ObDate
+Public CurJD As Float
+
+Public Sub _new()
+End
+
+Public Sub Form_Open()
+  Timestamp
+End
+
+Public Sub Timestamp()
+     Dim txt, LF As String
+     LF = "\n"
+     txt = ""
+     txt = txt & "* Civil: " & FMain.GregDateStringFromJD(CurJD) & LF & LF
+     txt = txt & "* Day of year: " & FMain.GregDOYFromJD(CurJD) & LF
+     
+     Sunset = FMain.HMSTimeFromDecimalTime(FMain.SunsetFromJD(CurJD))
+     txt = txt & "* Sunset at " & Format$(Sunset.iHour, "00") & ":" & Format$(Sunset.iMinute, "00") & LF
+     
+     txt = txt & "* Julian Day: " & Left$(Format$(CurJD, "0000000.00000"), 10) & LF
+     txt = txt & "* Modified Julian Day: " & Left$(Format$(FMain.MJDFromJD(CurJD), "00000.00000"), 8) & LF
+     txt = txt & "* Truncated Julian Day (NIST): " & Left$(Format$(FMain.TruncatedJulianDayFromJD(CurJD), "0000.00000"), 7) & LF
+     txt = txt & "* Stardate: " & FMain.StardateFromJD(CurJD) & LF
+     txt = txt & "* RDate: " & FMain.RonDateFromJD(CurJD) & LF
+     txt = txt & "* Sharp Date Code: " & FMain.SharpDate(CurJD) & LF & LF
+     
+     txt = txt & "* Baha'i: " & FMain.BahaiStringFromJD(CurJD) & LF
+     txt = txt & "* Baha'i (Bad'i): " & FMain.BadiStringFromJD(CurJD) & LF
+     txt = txt & "* Discordian: " & FMain.DiscoDateString(CurJD) & LF
+     txt = txt & "* Illuminati: " & FMain.IllumDateStringFromJD(CurJD) & LF
+     txt = txt & "* Elvish: " & FMain.EldarDateFromJD(CurJD + 1) & " [after sunset]" & LF
+     txt = txt & "* Hobbit: " & FMain.ShireDateFromJD(CurJD) & LF
+     txt = txt & "* World Calendar: " & FMain.WorldCalStrFromJD(CurJD) & LF & LF
+     
+     txt = txt & "* 28-Hour Day: " & FMain.Hour28DayStrFromJD(CurJD) & LF
+     txt = txt & "* Fractional day (local): " & Left$(Str$(FMain.LocalFractionalDay(CurJD)), 5) & LF
+     txt = txt & "* Fractional day (universal): " & Left$(Str$(FMain.UniversalFractionalDay(CurJD)), 5) & LF
+     txt = txt & "* Hexadecimal time (local): ." & Hex$(FMain.LocalHexDay(CurJD), 4) & LF
+     txt = txt & "* Hexadecimal time (universal): ." & Hex$(FMain.UniversalHexDay(CurJD), 4) & LF
+     txt = txt & "* Swatch Internet Time: " & FMain.SwatchString(CurJD) & LF
+     txt = txt & "* New Earth Time (NET): " & Format(FMain.NetDegrees(CurJD), "##0") & "°" & Format(FMain.NetMinutes(CurJD), "00") & "'" & LF
+
+     time.text = txt
+     Clipboard.Copy(txt)
+End

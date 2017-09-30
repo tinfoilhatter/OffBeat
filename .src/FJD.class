@@ -1,0 +1,12 @@
+' Gambas class file
+
+Public Sub _new()
+  jdBox.Value = Left$(Str$(FMain.CurJD), 10)
+End
+
+Public Sub OK_Click()
+  FJD.Hide
+  FCal.CurJD = CFloat(jdBox.Text)
+  FCal.Timestamp
+  FCal.Show
+End

@@ -1,0 +1,37 @@
+' Gambas class file
+
+'
+'OffBeat, an offbeat, multicultural clock and calendar program.
+'Copyright (C) 2012 Ron Hale-Evans.
+
+'This file is part of OffBeat.
+'
+'OffBeat is free software: you can redistribute it and/or modify it 
+'under the terms of the GNU Affero General Public License as published 
+'by the Free Software Foundation, either version 3 of the License, or 
+'(at your option) any later version.
+'
+'OffBeat is distributed in the hope that it will be useful, but 
+'WITHOUT ANY WARRANTY; without even the implied warranty of 
+'MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+'Affero General Public License for more details.
+'
+'You should have received a copy of the GNU Affero General Public 
+'License along with OffBeat. If not, see 
+'<http://www.gnu.org/licenses/>. 
+
+
+Public iYear As Integer
+Public iMonth As Integer
+Public iDay As Integer
+Public iHour As Integer
+Public iMinute As Integer
+Public iSecond As Integer
+Public sCalendar As String
+Public iWeekday As Integer
+Public sSpecialDay As String
+
+'Useful for Baha'i calendar
+Public iCycle1 As Integer
+Public iCycle2 As Integer
+Public iCycle3 As Integer

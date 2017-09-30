@@ -1,0 +1,16 @@
+# Gambas Form File 3.0
+{ Form Form 
+  MoveScaled(0,0,64,10)
+  { jdBox ValueBox 
+    MoveScaled(1,1,62,4)
+  }
+  { OK Button 
+    MoveScaled(47,5,16,4)
+    Text = ("OK")
+    Default = True
+  }
+  { Label1 Label 
+    MoveScaled(1,5,44,4)
+    Alignment = Align.Center
+  }
+}

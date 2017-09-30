@@ -1,0 +1,14 @@
+' Gambas class file
+
+Public Sub Form_Open()
+  Timer1.Enabled = True
+End
+
+Public Sub Close_Click()
+  Me.Hide
+End
+
+Public Sub Timer1_Timer()
+  Label1.text = Str$(Time(Now))
+  Label2.text = Left$(Format$(FMain.MJDFromJD(FMain.CurJD), "00000.00000"), 8)
+End
