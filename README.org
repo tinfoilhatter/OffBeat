@@ -1,4 +1,5 @@
-OffBeat, an offbeat, multicultural clock and calendar program.
+* OffBeat, an offbeat, multicultural clock and calendar program
+
 Copyright (C) 2012 Ron Hale-Evans.
 
 This file is part of OffBeat.
