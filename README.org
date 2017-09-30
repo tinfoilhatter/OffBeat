@@ -1,6 +1,6 @@
 * OffBeat, an offbeat, multicultural clock and calendar program
 
-Copyright (C) 2012 Ron Hale-Evans.
+Copyright 2012 Ron Hale-Evans.
 
 This file is part of OffBeat.
 
@@ -16,7 +16,7 @@ Affero General Public License for more details.
 
 You should have received a copy of the GNU Affero General Public 
 License along with OffBeat. If not, see 
-<http://www.gnu.org/licenses/>.
+http://www.gnu.org/licenses/ .
 
 * Introduction
 
@@ -26,7 +26,7 @@ article "How to Live Eleven Days in Twenty-Four Hours."
 
 Since it is easy to find software that shows the date in historical
 calendars (especially after the publication of Dershowitz and
-Reingold's //Calendrical Calculations// and their implementation in GNU
+Reingold's /Calendrical Calculations/ and their implementation in GNU
 Emacs), I have initially focused on unusual clocks and calendars,
 including ones from fiction. More historical calendars will likely be
 added later.
@@ -113,7 +113,7 @@ Calendar of Imladris, and Stardates.
 - Hora Terrae
 - ISO 8601
 - Jain
-- Martian timekeeping, including Kim Stanley Robinson's //Mars Trilogy//
+- Martian timekeeping, including Kim Stanley Robinson's /Mars Trilogy/
 - Mission Elapsed Time, possibly in a number of units
 - My personal Discordian Time non-standard
 - 'Pataphysical Calendar
@@ -145,11 +145,11 @@ Calendar of Imladris, and Stardates.
 
 The code in OffBeat is mostly original, but thanks must go to:
 
-- The book //Calendrical Calculations// by Nachum Dershowitz and
+- The book /Calendrical Calculations/ by Nachum Dershowitz and
   Edward Reingold, for the formula for calculating the Gregorian year
   from a Julian Day.
 - The Calendar FAQ, for the formula for calculating the Julian Day from a Gregorian date.
-- Gene Roddenberry and Paramount Pictures for //Star Trek// and stardates.
+- Gene Roddenberry and Paramount Pictures for /Star Trek/ and stardates.
 - Andrew Main for devising a consistent system for stardates, and for
   providing stardate calculation code as a reference point (mostly
   useful in OffBeat for epochs and other constants).
