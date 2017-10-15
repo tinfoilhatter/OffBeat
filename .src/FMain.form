@@ -1,87 +1,90 @@
 # Gambas Form File 3.0
-{ Form Form 
-  MoveScaled(0,0,69,20)
+
+{ Form Form
+  MoveScaled(0,0,80,20)
   Expand = True
   AutoResize = True
-  { Clock Menu 
+  { Clock Menu
     Text = ("Clocks")
-    { CivilLocal Menu 
+    { CivilLocal Menu
       Text = ("Civil (local)")
     }
-    { TwentyEight Menu 
+    { TwentyEight Menu
       Text = ("28-Hour Day")
     }
-    { Klock Menu 
+    { Klock Menu
       Text = ("Discordian Klock")
     }
-    { FractionalDayLocal Menu 
+    { EraAstronauticum Menu
+      Text = ("Era Astronauticum (megaseconds)")
+    }
+    { FractionalDayLocal Menu
       Text = ("Fractional day (local)")
     }
-    { FractionalDayUniversal Menu 
+    { FractionalDayUniversal Menu
       Text = ("Fractional day (universal)")
     }
-    { HexadecimalDayLocal Menu 
+    { HexadecimalDayLocal Menu
       Text = ("Hexadecimal time (local)")
     }
-    { HexadecimalDayUniversal Menu 
+    { HexadecimalDayUniversal Menu
       Text = ("Hexadecimal time (universal)")
     }
-    { JulianDay Menu 
+    { JulianDay Menu
       Text = ("Julian day")
     }
-    { ModifiedJulianDay Menu 
+    { ModifiedJulianDay Menu
       Text = ("Modified Julian day")
     }
-    { NewEarthTime Menu 
+    { NewEarthTime Menu
       Text = ("New Earth Time (NET)")
     }
-    { RDate Menu 
+    { RDate Menu
       Text = ("RDate")
     }
-    { SharpDateCode Menu 
+    { SharpDateCode Menu
       Text = ("Sharp Date Code")
     }
-    { Stardate Menu 
+    { Stardate Menu
       Text = ("Stardate")
     }
-    { Swatch Menu 
+    { Swatch Menu
       Text = ("Swatch Internet Time")
     }
-    { TruncatedJulianDay Menu 
+    { TruncatedJulianDay Menu
       Text = ("Truncated Julian day (NIST)")
     }
-    { UTC Menu 
+    { UTC Menu
       Text = ("UTC (Coordinated Universal Time)")
     }
   }
-  { Misc Menu 
+  { Misc Menu
     Text = ("Misc")
-    { Timestamp Menu 
+    { Timestamp Menu
       Text = ("Timestamp")
     }
-    { ConvertDate Menu 
-      Text = ("Convert civil date/time...")
+    { ConvertDate Menu
+      Text = ("Convert civil date/time") & "..."
     }
-    { ConvertJD Menu 
-      Text = ("Convert Julian day...")
+    { ConvertJD Menu
+      Text = ("Convert Julian day") & "..."
     }
-    { ClockRadio Menu 
+    { ClockRadio Menu
       Text = ("Clock radio mode")
     }
-    { MoreAbout Menu 
+    { MoreAbout Menu
       Text = ("More about this timekeeping system")
     }
-    { About Menu 
+    { About Menu
       Text = ("About OffBeat")
     }
   }
-  { time Label 
-    MoveScaled(1,1,67,14)
+  { time Label
+    MoveScaled(1,1,78,14)
     Font = Font["Liberation Mono,Bold,+10"]
     Expand = True
     Alignment = Align.Center
   }
-  { Timer1 #Timer 
-    #MoveScaled(0,0)
+  { Timer1 #Timer
   }
 }

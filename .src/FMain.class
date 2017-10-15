@@ -99,6 +99,9 @@ Public Sub Form_Open()
 End
 
 Public Sub Timer1_Timer()
+  Dim eaMegaSecsStr As String
+  Dim eaMegaSecsLen As Integer
+  
   GetUnixTime
   GetLocalTimezone
   
@@ -110,6 +113,10 @@ Public Sub Timer1_Timer()
     Case "TwentyEight"
       theHour28 = HourOfWeek28()
       time.text = Weekday28(theHour28) & ", " & Hour28(theHour28)
+    Case "EraAstronauticum"
+      eaMegaSecsStr = Format$(unixtime / 1000000, "0000.000000")
+      eaMegaSecsLen = Len(eaMegaSecsStr)
+      time.text = Left$(eaMegaSecsStr, eaMegaSecsLen - 3) & " " & Right$(eaMegaSecsStr, 3)
     Case "Klock"
       time.text = DiscoKlockString()
     Case "JulianDay"
@@ -189,6 +196,12 @@ Public Sub UTC_Click()
   MenuChoice = "UTC"
   FMain.Caption = "Coordinated Universal Time (UTC)"
   HelpURL = "http://en.wikipedia.org/wiki/Coordinated_Universal_Time"
+End
+
+Public Sub EraAstronauticum_Click()
+  MenuChoice = "EraAstronauticum"
+  FMain.Caption = "Era Astronauticum (megaseconds)"
+  HelpURL = "http://transform.to/~dragondm/aea.html"
 End
 
 Public Sub Klock_Click()
@@ -1172,7 +1185,6 @@ End Function
 Function BahaiDateString(B As ObDate) As String
   Dim MoStr, DayStr, WeekdayStr, YearStr, Result, yStr As String
   Dim VahidStr, Kull_i_Shay_Str, YearNameStr As String
-  Dim Proleptic As Boolean
   
   MoStr = BahaiMoNames[B.iMonth, 1]
   DayStr = Str(B.iDay)
