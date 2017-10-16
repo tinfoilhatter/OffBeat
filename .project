@@ -2,7 +2,7 @@
 # Compiled with Gambas 3.9.1
 Title=OffBeat
 Startup=FMain
-Version=1.2.10
+Version=1.2.11
 Component=gb.image
 Component=gb.qt4
 Component=gb.form

@@ -52,7 +52,7 @@ Public Sub Timestamp()
      txt = txt & "* Baha'i (Bad'i): " & FMain.BadiStringFromJD(CurJD) & LF
      txt = txt & "* Discordian: " & FMain.DiscoDateString(CurJD) & LF
      txt = txt & "* Illuminati: " & FMain.IllumDateStringFromJD(CurJD) & LF
-     txt = txt & "* Elvish: " & FMain.EldarDateFromJD(CurJD + 1) & " [after sunset]" & LF
+     'txt = txt & "* Elvish: " & FMain.EldarDateFromJD(CurJD + 1) & " [after sunset]" & LF
      txt = txt & "* Hobbit: " & FMain.ShireDateFromJD(CurJD) & LF
      txt = txt & "* World Calendar: " & FMain.WorldCalStrFromJD(CurJD) & LF
      txt = txt & "* Holocene Calendar: " & FMain.HoloceneDateStringFromJD(CurJD) & LF & LF
