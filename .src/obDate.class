@@ -20,7 +20,6 @@
 'License along with OffBeat. If not, see 
 '<http://www.gnu.org/licenses/>. 
 
-
 Public iYear As Integer
 Public iMonth As Integer
 Public iDay As Integer

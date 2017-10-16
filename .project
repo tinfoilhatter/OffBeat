@@ -2,7 +2,7 @@
 # Compiled with Gambas 3.9.1
 Title=OffBeat
 Startup=FMain
-Version=1.2.7
+Version=1.2.10
 Component=gb.image
 Component=gb.qt4
 Component=gb.form
@@ -11,6 +11,7 @@ Component=gb.desktop
 Component=gb.qt4.ext
 TabSize=2
 Language=en_US
+CreateShortcut=1
 Maintainer=Ron Hale-Evans
 Address=rwhe@ludism.org
 Url=http://ron.ludism.org

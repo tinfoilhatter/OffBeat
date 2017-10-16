@@ -98,9 +98,19 @@ Public Sub Form_Open()
   Longitude = -122.541667
 End
 
-Public Sub Timer1_Timer()
+Public Sub EraAstronauticumStr() As String
   Dim eaMegaSecsStr As String
   Dim eaMegaSecsLen As Integer
+  Dim txt As String
+  
+  eaMegaSecsStr = Format$(unixtime / 1000000, "0000.000000")
+  eaMegaSecsLen = Len(eaMegaSecsStr)
+  txt = Left$(eaMegaSecsStr, eaMegaSecsLen - 3) & " " & Right$(eaMegaSecsStr, 3)
+  Return txt
+End
+
+Public Sub Timer1_Timer()
+
   
   GetUnixTime
   GetLocalTimezone
@@ -114,9 +124,7 @@ Public Sub Timer1_Timer()
       theHour28 = HourOfWeek28()
       time.text = Weekday28(theHour28) & ", " & Hour28(theHour28)
     Case "EraAstronauticum"
-      eaMegaSecsStr = Format$(unixtime / 1000000, "0000.000000")
-      eaMegaSecsLen = Len(eaMegaSecsStr)
-      time.text = Left$(eaMegaSecsStr, eaMegaSecsLen - 3) & " " & Right$(eaMegaSecsStr, 3)
+      time.text = EraAstronauticumStr()
     Case "Klock"
       time.text = DiscoKlockString()
     Case "JulianDay"
@@ -306,9 +314,9 @@ Public Sub GetLocalTimezone()
   timezone = ltzdiff / 3600
 End
 
-Function DecimalTimeFromDayFrac(DayFrac As Float) As Float
-  Return DayFrac * 24.00
-End
+' Function DecimalTimeFromDayFrac(DayFrac As Float) As Float
+'   Return DayFrac * 24.00
+' End
 
 Public Function FloatMod(A As Float, B As Long) As Float
   Dim IntPart, ResultIntPart As Long
@@ -385,15 +393,15 @@ Function TimeString(T As ObDate) As String
   Return Format(T.iHour, "00") & ":" & Format(T.iMinute, "00") & ":" & Format(T.iSecond, "00") & " (UTC " & Format(Timezone, "+00") & ")"
 End Function
 
-Function Signum(Num As Float) As Integer
-  If Num > 0 Then
-    Return 1
-  Else If Num < 0 Then
-    Return -1
-  Else
-    Return 0
-  End If
-End Function
+' Function Signum(Num As Float) As Integer
+'   If Num > 0 Then
+'     Return 1
+'   Else If Num < 0 Then
+'     Return -1
+'   Else
+'     Return 0
+'   End If
+' End Function
 
 Function RealMod(A As Float, B As Float) As Float
   Dim C As Integer
@@ -440,31 +448,31 @@ Public Function HMSTimeFromDecimalTime(DecimalTime As Float) As ObDate
   Return HMSTime
 End Function
 
-Function MakeTime(iHour As Integer, iMinute As Integer, iSecond As Integer) As ObDate
-  Dim NewDate As ObDate
-  
-  NewDate = New ObDate
-  
-  NewDate.iHour = iHour
-  NewDate.iMinute = iMinute
-  NewDate.iSecond = iSecond
-  
-  Return NewDate
-End Function
+' Function MakeTime(iHour As Integer, iMinute As Integer, iSecond As Integer) As ObDate
+'   Dim NewDate As ObDate
+'   
+'   NewDate = New ObDate
+'   
+'   NewDate.iHour = iHour
+'   NewDate.iMinute = iMinute
+'   NewDate.iSecond = iSecond
+'   
+'   Return NewDate
+' End Function
 
-Function DecimalTimeFromHMSTime(HMSTime As ObDate) As Float
-  Return HMSTime.Hour + HMSTime.Minute / 60 + HMSTime.Second / 3600
-End Function
+' Function DecimalTimeFromHMSTime(HMSTime As ObDate) As Float
+'   Return HMSTime.Hour + HMSTime.Minute / 60 + HMSTime.Second / 3600
+' End Function
 
-Function AdjustTimezoneForDST() As Integer
-  Dim Result As Integer
-  If DST Then
-    Result = Timezone '+ 1
-  Else
-    Result = Timezone
-  End If
-  Return Result
-End Function
+' Function AdjustTimezoneForDST() As Integer
+'   Dim Result As Integer
+'   If DST Then
+'     Result = Timezone '+ 1
+'   Else
+'     Result = Timezone
+'   End If
+'   Return Result
+' End Function
 
 Function OrdinalFromCardinal(Cardinal As Float) As String
   Dim CardStr, RightTwoDigits, S, OrdStr As String
@@ -496,17 +504,17 @@ Function OrdinalFromCardinal(Cardinal As Float) As String
   
 End Function
 
-Function SecsSinceMidnight(iHour As Integer, iMinute As Integer, iSecond As Integer) As Float
-  Dim Secs As Float
-  Secs = (iHour * 3600) + (iMinute * 60) + iSecond
-  Return Secs
-End Function
+' Function SecsSinceMidnight(iHour As Integer, iMinute As Integer, iSecond As Integer) As Float
+'   Dim Secs As Float
+'   Secs = (iHour * 3600) + (iMinute * 60) + iSecond
+'   Return Secs
+' End Function
 
-Function JDFromMJD(MJD As Float) As Float
-  Dim JD As Float
-  JD = MJD + 2400000.5
-  Return (JD)
-End Function
+' Function JDFromMJD(MJD As Float) As Float
+'   Dim JD As Float
+'   JD = MJD + 2400000.5
+'   Return (JD)
+' End Function
 
 Function utcStringNow() As String
   Dim utcHour, utcMinute, utcSecond As Integer
@@ -563,6 +571,12 @@ Public Function GregDateStringFromJD(JD As Float) As String
   txt = GregDateString(G.iMonth, G.iDay, G.iYear) & ", " & TimeString(G)
   If JD <= 2299160.5 Then txt = "UNSUPPORTED" 'Gregorian epoch = Fri, 15 Oct 1582
   Return txt
+End
+
+Public Function HoloceneDateStringFromJD(JD As Float) As String
+  Dim G As ObDate
+  G = GregDateFromJD(JD)
+  Return HoloceneDateString(G.iMonth, G.iDay, G.iYear + 10000)
 End
 
 Public Function GregYearIsLeapYear(InYear As Integer) As Boolean
@@ -753,6 +767,10 @@ Function GregDateString(GregMonth As Integer, GregDay As Integer, GregYear As In
   GregStr = WeekdayName & ", " & Str(GregDay) & " " & MonthName & " "
   GregStr = GregStr & GregYearName(GregYear)
   Return GregStr
+End Function
+
+Function HoloceneDateString(GregMonth As Integer, GregDay As Integer, HEYear As Integer) As String
+  Return Str$(GregDay) & " " & GregMoNames[GregMonth] & " " & Format$(HEYear, ",##### Human Era")
 End Function
 
 Public Function GregDateIsValid(GregYear As Integer, GregMonth As Integer, GregDay As Integer) As Boolean
@@ -1253,14 +1271,11 @@ End
 Public Function RonDateFromJD(JD As Float) As String
   Dim G As ObDate
   Dim AdjJD As Float
-  Dim wd As Integer
   G = GregDateFromJD(JD)
-  'ShowObDate(G)
   Return RonDateFromGreg(G.iYear, G.iMonth, G.iDay)
 End
 
 Public Function RonDateFromGreg(GregYear As Integer, GregMonth As Integer, GregDay As Integer) As String
-  Dim RonStr As String
   Dim JD As Float
   Dim iWeekday As Integer
   
@@ -1681,7 +1696,6 @@ Public Function EldarDateFromJD(JD As Float) As String
   Dim Result As String
   Dim SpecialDay, MoName, YearStr, WeekdayStr As String
   Dim LeapFlag, DayOfImladrisMonth, iWeekDay As Integer
-  Dim OmitWeekday As Boolean
   Dim AdjJD As Float
   Dim GregDate As ObDate
   Dim DOY As Integer
@@ -1792,9 +1806,9 @@ Public Sub NetMinutes(JD As Float) As Integer
   Return Int(((UniversalFractionalDay(JD) * 360) - NetDegrees(JD)) * 60)
 End
 
-Function DayFracFromDecimalTime(DecimalTime As Float) As Float
-  Return DecimalTime / 24.00
-End Function
+' Function DayFracFromDecimalTime(DecimalTime As Float) As Float
+'   Return DecimalTime / 24.00
+' End Function
 
 '========================================================================
 
@@ -2007,7 +2021,7 @@ End
 '==============================================================
 ' World Calendar
 Sub WorldCalDataInit()
-  Dim i, j As Integer
+  Dim i As Integer
   
   WorldCalMoLens[0, 0] = 0
   WorldCalMoLens[1, 0] = 31
@@ -2058,7 +2072,7 @@ Sub WorldCalDataInit()
 End Sub
 
 Public Function WorldCalStrFromJD(JD As Float) As String
-  Dim iDOY, iYear As Integer
+  Dim iDOY As Integer
   Dim G As ObDate
   G = New ObDate
   
@@ -2145,17 +2159,17 @@ Function CosD(Degrees As Float) As Float
   Return Cos(RadiansFromDegrees(Degrees))
 End Function
 
-Function TanD(Degrees As Float) As Float
-  Return Tan(RadiansFromDegrees(Degrees))
-End Function
+' Function TanD(Degrees As Float) As Float
+'   Return Tan(RadiansFromDegrees(Degrees))
+' End Function
 
-Function AtanD(TheInput As Float) As Float
-  Return DegreesFromRadians(ATan(TheInput))
-End Function
-
-Function AsinD(TheInput As Float) As Float
-  Return DegreesFromRadians(ASin(TheInput))
-End Function
+' Function AtanD(TheInput As Float) As Float
+'   Return DegreesFromRadians(ATan(TheInput))
+' End Function
+' 
+' Function AsinD(TheInput As Float) As Float
+'   Return DegreesFromRadians(ASin(TheInput))
+' End Function
 
 Function AcosD(TheInput As Float) As Float
   Return DegreesFromRadians(ACos(TheInput))
@@ -2179,25 +2193,25 @@ Function Degrees(Theta As Float) As Float
   Return D
 End Function
 
-Function Atan2(y As Float, x As Float) As Float
-  Dim Result As Float
-  
-  'Returns its result in RADIANS
-  
-  If x > 0 Then
-    Result = ATan(y / x)
-  Else If x < 0 Then
-    Result = ATan(y / x) + Pi
-  Else If y > 0 Then
-    Result = Pi / 2
-  Else If y < 0 Then
-    Result = - Pi / 2
-  Else
-    Result = 0
-  End If
-  
-  Return Result
-End Function
+' Function Atan2(y As Float, x As Float) As Float
+'   Dim Result As Float
+'   
+'   'Returns its result in RADIANS
+'   
+'   If x > 0 Then
+'     Result = ATan(y / x)
+'   Else If x < 0 Then
+'     Result = ATan(y / x) + Pi
+'   Else If y > 0 Then
+'     Result = Pi / 2
+'   Else If y < 0 Then
+'     Result = - Pi / 2
+'   Else
+'     Result = 0
+'   End If
+'   
+'   Return Result
+' End Function
 
 '==================================================================================
 'Astronomical functions
