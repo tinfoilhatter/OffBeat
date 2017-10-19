@@ -13,18 +13,16 @@ Public Sub OK_Click()
   Dim y, mo, d, h, m, s As Integer
   Dim tz As Float
   
-  theDate = Split(DateIn.Text, "/", "", True)
-  theTime = Split(TimeIn.Text, ":", "", True)
-  
-  Print theDate, theTime
-  
+  theDate = Split(DateIn.Value, "/")
+  theTime = Split(TimeIn.Value, ":")
+
   mo = CInt(theDate[0])
   d = CInt(theDate[1])
   y = CInt(theDate[2])
   h = CInt(theTime[0])
   m = CInt(theTime[1])
   s = CInt(theTime[2])
-  tz = CFloat(TZin.text)
+  tz = CFloat(TZin.Value)
 
   If FMain.GregDateIsValid(y, mo, d) And FMain.CivilTimeIsValid(h, m, s) Then
     JDin = FMain.JDFromGregDate(y, mo, d) + FMain.Civil2DayFrac(h, m, s) - (tz / 24) - 0.5
