@@ -108,18 +108,22 @@ Calendar of Imladris, and Stardates.
 
 ** New Clocks/Calendars
 
-- Bells and watches (from ships and monasteries, respectively)
-- Collins Metric Time
-- Hora Terrae
-- ISO 8601
-- Jain
+- Bells and watches (from ships and monasteries)
+- [[http://members.ozemail.com.au/~collinsb/bc/5-metric_time/index.htm][Collins Metric Time]]
+- [[http://www.ludism.org/tinfoil/Europan_Clock_and_Calendar][Europan timekeeping]] (RWHE)
+- Gott prediction timestamps
+- [[https://blog.plover.com/2016/06/22/][Greek Clock]]
+- [[http://web.archive.org/web/20040929081226/http://www.horaterrae.org:80/][Hora Terrae]]
+- [[https://en.wikipedia.org/wiki/ISO_8601][ISO 8601]]
 - Martian timekeeping, including Kim Stanley Robinson's /Mars Trilogy/
-- Mission Elapsed Time, possibly in a number of units
-- My personal Discordian Time non-standard
-- 'Pataphysical Calendar
-- Positivist Calendar
-- Robert Anton Wilson's calendars
-- Stardate issues after TOS-style stardates
+- [[https://en.wikipedia.org/wiki/Mission_Elapsed_Time][Mission Elapsed Time]], possibly in a number of units
+- Discordian Time second non-standard (RWHE)
+- New Era Calendar from /Dayworld/
+- [[https://en.wikipedia.org/wiki/Pataphysical_calendar]['Pataphysical Calendar]]
+- [[https://en.wikipedia.org/wiki/Positivist_calendar][Positivist Calendar]]
+- [[http://www.kelsung.com/calendar/RAW.htm][Robert Anton Wilson's calendars]]
+- [[http://starchive.cs.umanitoba.ca/?stardates/part1][Stardate issues after ST:TOS-style stardates]]
+
 
 ** General Improvements
 
@@ -159,7 +163,8 @@ The code in OffBeat is mostly original, but thanks must go to:
 - Pope Gregory XIII, Aloysius Lilius, Christopher Clavius, and a cast
   of billions, for the Gregorian calendar, implemented across most of
   Europe in the late 16th century, and still widely in use today.
-
+- The book /Standard C Date/Time Library/ by Lance Latham, for general hoopiness.
+  
 * Contact
 
 For bugs, comments, questions, suggestions, or simple support, email
