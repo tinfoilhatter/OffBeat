@@ -32,9 +32,8 @@ Public LTZ As String
 Public LTZdiff As Integer
 
 Public CurJD As Float
-'PUBLIC JDinput AS Float
 Public tjdstring As String
-Public jd As Float
+'Public jd As Float
 
 Public theYear As Integer
 Public theMonth As Integer
@@ -93,17 +92,16 @@ Public Sub Form_Open()
   
   LocalFlag = True
   
-  'University Place, WA
-  Latitude = 47.219444
-  Longitude = -122.541667
+  'Seattle, WA
+  Latitude = 47.6062
+  Longitude = -122.3321
 End
 
-Public Sub EraAstronauticumStr() As String
+Public Sub EraAstronauticumStr(JD As Float) As String
   Dim eaMegaSecsStr As String
   Dim eaMegaSecsLen As Integer
   Dim txt As String
-  
-  eaMegaSecsStr = Format$(unixtime / 1000000, "0000.000000")
+  eaMegaSecsStr = Format$(UnixTimeFromJulianDay(JD) / 1000000, "0000.000000")
   eaMegaSecsLen = Len(eaMegaSecsStr)
   txt = Left$(eaMegaSecsStr, eaMegaSecsLen - 3) & " " & Right$(eaMegaSecsStr, 3)
   Return txt
@@ -124,7 +122,7 @@ Public Sub Timer1_Timer()
       theHour28 = HourOfWeek28()
       time.text = Weekday28(theHour28) & ", " & Hour28(theHour28)
     Case "EraAstronauticum"
-      time.text = EraAstronauticumStr()
+      time.text = EraAstronauticumStr(CurJD)
     Case "Klock"
       time.text = DiscoKlockString()
     Case "JulianDay"
@@ -363,6 +361,10 @@ End Function
 
 Public Function JulianDayFromUnixTime(UnixTime As Long) As Float
   Return (UnixTime / FMain.SecondsPerDay) + 2440587.5
+End
+
+Public Function UnixTimeFromJulianDay(JD As Float) As Long
+  Return (JD - JulianDayFromUnixTime(0)) * FMain.SecondsPerDay 
 End
 
 Public Function TruncatedJulianDayFromJD(JD As Float) As Float

@@ -1,31 +1,33 @@
 # Gambas Form File 3.0
-{ Form Form 
+
+{ Form Form
   MoveScaled(0,0,64,64)
   Background = &H000000&
   Expand = True
   FullScreen = True
-  { Window Menu 
+  { Window Menu
     Text = ("Window")
-    { Close Menu 
+    { Close Menu
       Text = ("Close")
       Shortcut = "Ctrl+W"
     }
   }
-  { Label1 Label 
-    MoveScaled(0,0,142.8571,35.7143)
+  { Label1 Label
+    MoveScaled(3,15,142.875,35.75)
     Font = Font["Liberation Mono,128"]
-    Background = Color.Foreground
+    Background = Color.Black
     Foreground = &H00FF00&
+    AutoResize = True
     Alignment = Align.Center
   }
-  { Label2 Label 
-    MoveScaled(1,38,142.8571,35.7143)
+  { Label2 Label
+    MoveScaled(3,43,142.875,35.75)
     Font = Font["Liberation Mono,128"]
-    Background = Color.Foreground
-    Foreground = &FFA500&
+    Background = Color.Black
+    Foreground = &HFFA500&
+    AutoResize = True
     Alignment = Align.Center
   }
-  { Timer1 #Timer 
-    #MoveScaled(0,0)
+  { Timer1 #Timer
   }
 }

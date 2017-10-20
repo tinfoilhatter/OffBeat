@@ -24,15 +24,15 @@ SearchString=True
 Count=11
 File[1]=".src/FAbout.class:29.21"
 File[2]=".src/FAbout.form"
-Active=11
+Active=6
 File[3]=".src/FCiv.class:25.24"
 File[4]=".src/FCiv.form"
 File[5]=".src/FClockRadio.class:22.2"
 File[6]=".src/FClockRadio.form"
-File[7]=".src/FMain.class:12.773"
+File[7]=".src/FMain.class:0.110"
 File[8]=".src/FMain.form"
 File[9]=".src/obDate.class:0.21"
-File[10]=".src/FCal.class:75.53"
+File[10]=".src/FCal.class:19.65"
 File[11]=".src/FCal.form"
 
 [Watches]
