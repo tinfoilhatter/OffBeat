@@ -1,0 +1,240 @@
+'Main.GottButton.Action:
+Sub Action()
+  Dim DOY, ShireDOY, GregYear, GregMonth, GregDay as integer
+  Dim Txt, Stardate as String
+  Dim LeapYear as boolean
+  Dim JD, MJD, S as Float
+  Dim TheTime, GNow as date
+  Dim GregTS, WorldCalTS, ShireTS, EldarinTS, StardateTS as String
+  Dim RTN, JD_TS, MJD_TS, DOY_TS as String
+  Dim DiscoTS, IllumTS, BahaiTS, SunsetStr as String
+  Dim BahaiDate, G, T as obDate
+  Dim OriginJD, NowJD, LowEndJD, HighEndJD, DaysSurvived as Float
+  Dim LowEndYears, HighEndYears as Float
+  Dim LowEndDays, HighEndDays as Integer
+  Dim LowEndStr, HighEndStr as String
+  
+  ReadLocationPrefs
+  
+  RTN = chr(13)
+  Txt = ""
+  
+  GregYear = val (YearField.Text)
+  GregMonth = val (MoField.Text)
+  GregDay = val (DayField.Text)
+  LeapYear = GregYearIsLeapYear(GregYear)
+  
+  If GregDateIsValid(GregMonth, GregDay, GregYear) Then
+    
+    OriginJD = JDFromGregDate(GregMonth, GregDay, GregYear)
+    
+    GNow = new Date
+    NowJD = JDFromGregDate(GNow.Month, GNow.Day, GNow.Year)
+    
+    DaysSurvived = NowJD - OriginJD
+    
+    If DaysSurvived > 0 Then
+      
+      LowEndDays = DaysSurvived/39
+      LowEndJD = NowJD + Round(LowEndDays)
+      LowEndYears = LowEndDays/365.25
+      LowEndYears = (Round(LowEndYears*1000))/1000
+      
+      If LowEndDays <= 365 Then
+        LowEndStr = "LOW END ESTIMATE: " & Str(LowEndDays) & " days" & RTN & RTN & TimestampFromJD(LowEndJD)
+      Else
+        LowEndStr = "LOW END ESTIMATE: " & Format(LowEndYears,"#####.000") & " years" & RTN & RTN & TimestampFromJD(LowEndJD)
+      End If
+      
+      HighEndDays = DaysSurvived*39
+      HighEndJD = NowJD + Round(HighEndDays)
+      HighEndYears = HighEndDays/365.25
+      HighEndYears = (Round(HighEndYears*1000))/1000
+      
+      If HighEndDays <= 365 Then
+        HighEndStr = "HIGH END ESTIMATE: " & Str(HighEndDays) & " days" & RTN & RTN & TimestampFromJD(HighEndJD)
+      Else
+        HighEndStr = "HIGH END ESTIMATE: " & Format(HighEndYears,"#####.000") & " years" & RTN & RTN & TimestampFromJD(HighEndJD)
+      End If
+      
+      Txt = LowEndStr & RTN & RTN & HighEndStr
+      
+    Else
+      Beep
+      Txt = "ERROR: You must enter a date in the past. OffBeat can only apply the Copernican Principle "
+      Txt = Txt & "to objects and events that have already started."
+    End If
+    
+  Else
+    Beep
+    Txt = "ERROR: Either that date does not exist on the Gregorian calendar, or "
+    Txt = Txt & "OffBeat cannot calculate dates that far back in time." & RTN
+  End If
+  
+  ResultField.Text = Txt
+  
+End Sub
+
+
+
+ FUNCTION Swatch_BMT_MJD(MJD AS Float, SecondsSinceLocalMidnight AS Float) AS Float
+   DIM SwatchTimezone AS Integer
+   DIM LocalHour, BMTHour AS Float
+   DIM Swatch_BMT_MJD AS Float
+   
+   SwatchTimezone = Timezone - 1
+   
+   'Calculate what the BMT MJD is for given moment
+   LocalHour = SecondsSinceLocalMidnight / 3600
+   BMTHour = LocalHour - SwatchTimezone
+   IF BMTHour >= 24 THEN
+     'It's tomorrow in Biel!
+     Swatch_BMT_MJD = MJD + 1
+     BMTHour = BMTHour - 24
+   Elseif BMTHour <= 0 THEN
+     'It's yesterday in Biel!
+     Swatch_BMT_MJD = MJD - 1
+     BMTHour = BMTHour + 24
+   ELSE
+     Swatch_BMT_MJD = MJD
+   END IF
+   
+   RETURN (Swatch_BMT_MJD)
+   
+ END FUNCTION
+
+
+
+
+ 'OffBeatModule.UTC_MJD_FromMJDAndLocalSecs:
+ FUNCTION UTC_MJD_FromMJDAndLocalSecs(MJD AS Float, SecondsSinceLocalMidnight AS Integer) AS Float
+   DIM UTC_MJD AS Float
+   DIM LocalHour, UTCHour AS Float
+   
+   'Calculate what the UTC MJD is for given moment
+   LocalHour = SecondsSinceLocalMidnight / 3600
+   UTCHour = LocalHour - AdjTimezone
+   IF UTCHour >= 24 THEN
+     'It's tomorrow in Greenwich!
+     UTC_MJD = MJD + 1
+   Elseif UTCHour <= 0 THEN
+     'It's yesterday in Greenwich!
+     UTC_MJD = MJD - 1
+   ELSE
+     UTC_MJD = MJD
+   END IF
+   
+   RETURN UTC_MJD
+ END FUNCTION
+
+
+ 'OffBeatModule.UTCHourFromLocalHour:
+ FUNCTION UTCHourFromLocalHour(iHour AS Integer, iMinute AS Integer, iSecond AS Integer) AS Float
+   DIM UTCHour AS Float
+   DIM RoundUTCHour AS Integer
+   
+   RoundUTCHour = iHour - AdjTimezone
+   IF RoundUTCHour >= 24 THEN
+     'It's tomorrow in Greenwich!
+     RoundUTCHour = RoundUTCHour - 24
+   ELSE IF RoundUTCHour < 0 THEN
+     'It's yesterday in Greenwich!
+     RoundUTCHour = RoundUTCHour + 24
+   END IF
+   
+   UTCHour = DecimalTimeFromHMSTime(MakeTime(RoundUTCHour, iMinute, iSecond))
+   
+   RETURN UTCHour
+ END FUNCTION
+
+================================================
+
+ 'OffBeatModule.AfterSunsetNow:
+ FUNCTION AfterSunsetNow() AS Boolean
+   DIM G AS Date
+   DIM CurHMSTime, SunsetHMSTime AS obDate
+   DIM CurDecimalTime, SunsetDecimalTime, JD AS Float
+   DIM AfterSunset AS Boolean
+   DIM AdjHour AS Integer
+   
+   G = NEW obDate
+   CurHMSTime = NEW obDate
+   JD = JDFromGregDate(G.Month, G.Day, G.Year)
+   
+   IF DST THEN
+     AdjHour = G.Hour - 1
+   ELSE
+     AdjHour = G.Hour
+   END IF
+   
+   CurHMSTime = MakeTime(AdjHour, G.Minute, G.Second)
+   CurDecimalTime = DecimalTimeFromHMSTime(CurHMSTime)
+   
+   SunsetDecimalTime = SunsetFromJD(JD)
+   
+   'Round off sunset time to nearest minute
+   SunsetHMSTime = NEW obDate
+   SunsetHMSTime = RoundHMSTime(HMSTimeFromDecimalTime(SunsetDecimalTime))
+   SunsetDecimalTime = DecimalTimeFromHMSTime(SunsetHMSTime)
+   
+   IF CurDecimalTime >= SunsetDecimalTime THEN
+     AfterSunset = TRUE
+   ELSE
+     AfterSunset = FALSE
+   END IF
+   
+   RETURN AfterSunset
+   
+ END FUNCTION
+ 
+
+ FUNCTION RoundHMSTime(T AS obDate) AS obDate
+   DIM h, m AS Integer
+   DIM Result AS obDate
+   
+   IF T.Second >= 30 THEN
+     m = T.Minute + 1
+   ELSE
+     m = T.Minute
+   END IF
+   
+   IF m > 60 THEN
+     h = (T.Hour + 1) MOD 24
+     m = 0
+   ELSE
+     h = T.Hour
+   END IF
+   
+   Result = NEW obDate
+   
+   Result.Hour = h
+   Result.Minute = m
+   Result.Second = 0
+   
+   RETURN Result
+   
+ END FUNCTION
+ 
+ 
+ FUNCTION RoundTimeString(T AS obDate) AS String
+   DIM h, m AS Integer
+   DIM Result AS String
+   
+   IF T.Second >= 30 THEN
+     m = T.Minute + 1
+   ELSE
+     m = T.Minute
+   END IF
+   
+   IF m > 60 THEN
+     h = (T.Hour + 1) MOD 24
+     m = 0
+   ELSE
+     h = T.Hour
+   END IF
+   
+   Result = Format(h, "00") + ":" & Format(m, "00")
+   
+   RETURN Result
+   
+ END FUNCTION
