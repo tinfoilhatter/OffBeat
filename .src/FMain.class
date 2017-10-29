@@ -73,6 +73,10 @@ Public WorldCalWeekdays As New String[7]
 
 Public ActualMoLens[13] As Integer
 
+Public JovianYearLen As Float
+Public J2000 As Float 'in Julian days
+
+
 Public Sub _new()
 End
 
@@ -95,6 +99,9 @@ Public Sub Form_Open()
   'Seattle, WA
   Latitude = 47.6062
   Longitude = -122.3321
+  
+  JovianYearLen = 4332.59 'Earth days
+  J2000 = JDFromGregDate(2000, 1, 1) + 0.5
 End
 
 Public Sub EraAstronauticumStr(JD As Float) As String
@@ -359,8 +366,8 @@ Public Function MJDFromJD(JD As Float) As Float
   Return MJD
 End Function
 
-Public Function JulianDayFromUnixTime(UnixTime As Long) As Float
-  Return (UnixTime / FMain.SecondsPerDay) + 2440587.5
+Public Function JulianDayFromUnixTime(ut As Long) As Float
+  Return (ut / FMain.SecondsPerDay) + 2440587.5
 End
 
 Public Function UnixTimeFromJulianDay(JD As Float) As Long
@@ -628,7 +635,7 @@ Public Function GregDOYFromJD(JD As Float) As Integer
   Return GregDOYFromGregDate(G.iYear, G.iMonth, G.iDay)
 End
 
-Public Function GregDOYFromGregDate(TheYear As Integer, TheMonth As Integer, TheDay As Integer) As Integer
+Public Function GregDOYFromGregDate(yr As Integer, mo As Integer, d As Integer) As Integer
   Dim i, Days As Integer
 
   
@@ -638,15 +645,15 @@ Public Function GregDOYFromGregDate(TheYear As Integer, TheMonth As Integer, The
   
   Days = 0
   
-  If GregYearIsLeapYear(TheYear) Then
+  If GregYearIsLeapYear(yr) Then
     ActualMoLens[2] = 29
   End If
   
-  For i = 1 To TheMonth
+  For i = 1 To mo
     Days = Days + ActualMoLens[i - 1]
   Next
   
-  Days = Days + TheDay
+  Days = Days + d
   
   Return Days
 End Function
@@ -655,8 +662,6 @@ Public Function GregDateFromJD(JD As Float) As ObDate
   Dim l, n, i, j, d, m, y As Integer
   Dim OutDate, T As ObDate
   Dim AdjJD As Float
-  Dim iWeekday As Integer
-  Dim GregStr As String
   
   OutDate = New ObDate
   
@@ -809,7 +814,7 @@ End
 '===========================================================================
 '28-Hour Day
 
-Public Function Hour28DayStrFromJD(JD As Float) As String
+Public Function Hour28DayStrFromJD() As String
   Dim h28 As Float
   h28 = HourOfWeek28()
   Return Weekday28(h28) & ", " & Hour28(h28)
@@ -849,6 +854,7 @@ Public Function Weekday28(HourOfWeek As Float) As String
   End Select
   Return sWD28
 End
+
 
 Public Function Hour28(HourOfWeek As Float) As String
   Dim h28, M As Integer
@@ -1013,7 +1019,7 @@ End Function
 
 Function BahaiDateFromJD(JD As Float) As ObDate
   Dim m, LeapFlag, i, PrevDays, NextMonthStart, DayOfMonth As Integer
-  Dim BahaiYear, BahaiDOY, AdjustedDOY As Integer
+  Dim BahaiYear, BahaiDOY As Integer
   Dim iWeekday As Integer
   Dim sd As String
   Dim G, B, Jan1st, WRD_Date As ObDate
@@ -1203,8 +1209,7 @@ Function BahaiYearIsLeapYear(BahaiYear As Integer) As Boolean
 End Function
 
 Function BahaiDateString(B As ObDate) As String
-  Dim MoStr, DayStr, WeekdayStr, YearStr, Result, yStr As String
-  Dim VahidStr, Kull_i_Shay_Str, YearNameStr As String
+  Dim MoStr, DayStr, WeekdayStr, YearStr, Result As String
   
   MoStr = BahaiMoNames[B.iMonth, 1]
   DayStr = Str(B.iDay)
@@ -1235,7 +1240,7 @@ End Function
 'Date codes: alternative ways of writing the Gregorian date
 
 Public Function SharpDate(JD As Float) As String
-  Dim sDateCode, sYear, sMonth, sDay, sCode As String
+  Dim sYear, sMonth, sDay, sCode As String
   Dim G As New ObDate
   Dim sDigits As New String[32]
   sDigits = Split("0,1,2,3,4,5,6,7,8,9,A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V")
@@ -1272,7 +1277,6 @@ End
 
 Public Function RonDateFromJD(JD As Float) As String
   Dim G As ObDate
-  Dim AdjJD As Float
   G = GregDateFromJD(JD)
   Return RonDateFromGreg(G.iYear, G.iMonth, G.iDay)
 End
@@ -1994,11 +1998,18 @@ Function ShireWeekdayFromShireDOYAndLeapYear(SRDay As Integer, SRLeapYear As Boo
   Return (WeekdayName)
 End Function
 
+'=================================================================
+'Jovian and Europan Time
+
+Public Function JovianYearFromJD(JD As Float) As Float
+  Return (JD - J2000) / JovianYearLen
+End
+
 '==============================================================
 'Stardates
 
 Public Function StardateFromJD(JD As Float) As String
-  Dim EpochJD, EpochMJD, fMJD, DaysDiff, StardaysDiff, Stardate As Float
+  Dim EpochJD, EpochMJD, fMJD, DaysDiff, StardaysDiff, sd As Float
   Dim EpochIssue, Issue, StardaysPerIssue As Integer
   
   '2000 days in a stardate issue; 1000 "stardays" (tens column) @ 2 days each
@@ -2010,13 +2021,13 @@ Public Function StardateFromJD(JD As Float) As String
   fMJD = MJDFromJD(JD)
   DaysDiff = (fMJD - EpochMJD)
   StardaysDiff = DaysDiff / 2
-  Stardate = FloatMod(StardaysDiff, StardaysPerIssue) * 10 + 2.5
-  If Stardate < 0 Then Stardate = Stardate + 10000
+  sd = FloatMod(StardaysDiff, StardaysPerIssue) * 10 + 2.5
+  If sd < 0 Then sd = sd + 10000
   Issue = Int(EpochIssue + (StardaysDiff / StardaysPerIssue))
   If JD >= 2550185.5 Then
     Return "UNSUPPORTED"
   Else
-    Return "[" & Str$(Issue) & "]" & Left$(Format$(Stardate, "0000.00000"), 7)
+    Return "[" & Str$(Issue) & "]" & Left$(Format$(sd, "0000.00000"), 7)
   End If
 End
 
@@ -2153,12 +2164,12 @@ Function RadiansFromDegrees(Degs As Float) As Float
   Return Degs * Pi / 180
 End Function
 
-Function SinD(Degrees As Float) As Float
-  Return Sin(RadiansFromDegrees(Degrees))
+Function SinD(Degs As Float) As Float
+  Return Sin(RadiansFromDegrees(Degs))
 End Function
 
-Function CosD(Degrees As Float) As Float
-  Return Cos(RadiansFromDegrees(Degrees))
+Function CosD(Degs As Float) As Float
+  Return Cos(RadiansFromDegrees(Degs))
 End Function
 
 ' Function TanD(Degrees As Float) As Float
@@ -2225,7 +2236,7 @@ Public Function SunsetFromJD(JD As Float) As Float
 End Function
 
 'http://www.paulsadowski.com/Sadowski/suntimes.htm
-Public Function SunsetFromGreg(iYear As Integer, iMonth As Integer, iDay As Integer, latitude As Float, longitude As Float, TZ As Float, isdst As Integer) As String
+Public Function SunsetFromGreg(iYear As Integer, iMonth As Integer, iDay As Integer, lat As Float, long As Float, TZ As Float, isdst As Integer) As String
 Dim d, n, i, w, m, l, e, e1, a, xv, yv, v, xs, ys, xe, ecl, lonsun, ye, ze, ra, Declination, h, r As Float
 Dim GMST0, UT_Sun_in_south, LHA, hour_rise, hour_set, min_rise, min_set As Float
 
@@ -2274,16 +2285,16 @@ Dim GMST0, UT_Sun_in_south, LHA, hour_rise, hour_set, min_rise, min_set As Float
     GMST0 = rev(GMST0)
   End If
 
-  UT_Sun_in_south = (RA - GMST0 - longitude) / 15.0
+  UT_Sun_in_south = (RA - GMST0 - long) / 15.0
   If (UT_Sun_in_south < 0) Then
     UT_Sun_in_south = UT_Sun_in_south + 24
   End If
 
-  LHA = (sind(h) - (sind(latitude) * sind(Declination))) / (cosd(latitude) * cosd(Declination))
+  LHA = (sind(h) - (sind(lat) * sind(Declination))) / (cosd(lat) * cosd(Declination))
   If (LHA > -1 And LHA < 1) Then
     LHA = acosd(LHA) / 15
   Else
-    Return "No sunrise,No sunset"
+    Return -1 'No sunrise, no sunset
   End If
   hour_rise = UT_Sun_in_south - LHA
   hour_set = UT_Sun_in_south + LHA

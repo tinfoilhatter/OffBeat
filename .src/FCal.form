@@ -1,9 +1,11 @@
 # Gambas Form File 3.0
-{ Form Form 
+
+{ Form Form
   MoveScaled(0,0,103,64)
-  { time TextArea 
+  { time TextArea
     MoveScaled(1,1,100,62)
     Font = Font["+3"]
+    ReadOnly = True
     Wrap = True
   }
 }

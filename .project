@@ -1,8 +1,8 @@
 # Gambas Project File 3.0
-# Compiled with Gambas 3.9.1
+# Compiled with Gambas 3.9.2
 Title=OffBeat
 Startup=FMain
-Version=1.2.14
+Version=1.2.16
 Component=gb.image
 Component=gb.qt4
 Component=gb.form
@@ -16,10 +16,12 @@ Maintainer=Ron Hale-Evans
 Address=rwhe@ludism.org
 Url=http://ron.ludism.org
 License=General Public Licence
-PackageName=offbeat.120827a-1.2.2
+PackageName=offbeat-1.2.14
 CreateEachDirectory=1
 Packager=1
-Systems=debian
+Systems=debian,ubuntu
+SameDependencies=1
+SameFiles=1
 Menus=debian:"Games/Toys"
 Groups=debian:"games"
 Menus=ubuntu:"Games/Toys"

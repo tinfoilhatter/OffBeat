@@ -10,6 +10,9 @@ Geometry=[0,25,301,301]
 [DebugWindow/DiscoDate]
 Geometry=[0,25,301,301]
 
+[DebugWindow/Stardate]
+Geometry=[0,27,256,320]
+
 [Executable]
 Path="OffBeat.gambas"
 
@@ -24,15 +27,15 @@ SearchString=True
 Count=11
 File[1]=".src/FAbout.class:29.21"
 File[2]=".src/FAbout.form"
-Active=6
+Active=3
 File[3]=".src/FCiv.class:25.24"
 File[4]=".src/FCiv.form"
 File[5]=".src/FClockRadio.class:22.2"
 File[6]=".src/FClockRadio.form"
-File[7]=".src/FMain.class:0.110"
+File[7]=".src/FMain.class:46.809"
 File[8]=".src/FMain.form"
 File[9]=".src/obDate.class:0.21"
-File[10]=".src/FCal.class:19.65"
+File[10]=".src/FCal.class:62.52"
 File[11]=".src/FCal.form"
 
 [Watches]

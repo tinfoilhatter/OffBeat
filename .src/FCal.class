@@ -34,37 +34,38 @@ Public Sub Timestamp()
      Dim txt, LF As String
      LF = "\n"
      txt = ""
-     txt = txt & "• Civil: " & FMain.GregDateStringFromJD(CurJD) & LF & LF
+     txt = txt & "• Civil: " & FMain.GregDateStringFromJD(CurJD) & LF
      txt = txt & "• Day of year: " & FMain.GregDOYFromJD(CurJD) & LF
-     
      Sunset = FMain.HMSTimeFromDecimalTime(FMain.SunsetFromJD(CurJD))
-     txt = txt & "• Sunset at " & Format$(Sunset.iHour, "00") & ":" & Format$(Sunset.iMinute, "00") & LF
+     txt = txt & "• Sunset at " & Format$(Sunset.iHour, "00") & ":" & Format$(Sunset.iMinute, "00") & LF & LF
      
      txt = txt & "• Julian Day: " & Left$(Format$(CurJD, "0000000.00000"), 10) & LF
      txt = txt & "• Modified Julian Day: " & Left$(Format$(FMain.MJDFromJD(CurJD), "00000.00000"), 8) & LF
      txt = txt & "• Truncated Julian Day (NIST): " & Left$(Format$(FMain.TruncatedJulianDayFromJD(CurJD), "0000.00000"), 7) & LF
-     txt = txt & "• Stardate: " & FMain.StardateFromJD(CurJD) & LF
-     txt = txt & "• RDate: " & FMain.RonDateFromJD(CurJD) & LF
-     txt = txt & "• Sharp Date Code: " & FMain.SharpDate(CurJD) & LF
-     txt = txt & "• Era Astronauticum: " & FMain.EraAstronauticumStr(CurJD) & " Ms" & LF & LF
-     
-     txt = txt & "• Baha'i: " & FMain.BahaiStringFromJD(CurJD) & LF
-     txt = txt & "• Baha'i (Bad'i): " & FMain.BadiStringFromJD(CurJD) & LF
-     txt = txt & "• Discordian: " & FMain.DiscoDateString(CurJD) & LF
-     txt = txt & "• Illuminati: " & FMain.IllumDateStringFromJD(CurJD) & LF
-     'txt = txt & "• Elvish: " & FMain.EldarDateFromJD(CurJD + 1) & " [after sunset]" & LF
-     txt = txt & "• Hobbit: " & FMain.ShireDateFromJD(CurJD) & LF
-     txt = txt & "• World Calendar: " & FMain.WorldCalStrFromJD(CurJD) & LF
-     txt = txt & "• Holocene Calendar: " & FMain.HoloceneDateStringFromJD(CurJD) & LF & LF
-     
-     txt = txt & "• 28-Hour Day: " & FMain.Hour28DayStrFromJD(CurJD) & LF
      txt = txt & "• Fractional day (local): " & Left$(Str$(FMain.LocalFractionalDay(CurJD)), 5) & LF
      txt = txt & "• Fractional day (universal): " & Left$(Str$(FMain.UniversalFractionalDay(CurJD)), 5) & LF
      txt = txt & "• Hexadecimal time (local): ." & Hex$(FMain.LocalHexDay(CurJD), 4) & LF
      txt = txt & "• Hexadecimal time (universal): ." & Hex$(FMain.UniversalHexDay(CurJD), 4) & LF
      txt = txt & "• Swatch Internet Time: " & FMain.SwatchString(CurJD) & LF
+     txt = txt & "• Era Astronauticum: " & FMain.EraAstronauticumStr(CurJD) & " Ms" & LF          
      txt = txt & "• New Earth Time (NET): " & Format(FMain.NetDegrees(CurJD), "##0") & "°" & Format(FMain.NetMinutes(CurJD), "00") & "'" & LF
+     txt = txt & "• Stardate: " & FMain.StardateFromJD(CurJD) & LF
+     txt = txt & "• RDate: " & FMain.RonDateFromJD(CurJD) & LF
+     txt = txt & "• Sharp Date Code: " & FMain.SharpDate(CurJD) & LF & LF
+     
+     txt = txt & "• World Calendar: " & FMain.WorldCalStrFromJD(CurJD) & LF
+     txt = txt & "• Holocene Calendar: " & FMain.HoloceneDateStringFromJD(CurJD) & LF
+          txt = txt & "• Baha'i: " & FMain.BahaiStringFromJD(CurJD) & LF
+     txt = txt & "• Baha'i (Bad'i): " & FMain.BadiStringFromJD(CurJD) & LF & LF
+     
+     txt = txt & "• Discordian: " & FMain.DiscoDateString(CurJD) & LF
+     txt = txt & "• Illuminati: " & FMain.IllumDateStringFromJD(CurJD) & LF
+     'txt = txt & "• Elvish: " & FMain.EldarDateFromJD(CurJD + 1) & " [after sunset]" & LF
+     txt = txt & "• Hobbit: " & FMain.ShireDateFromJD(CurJD) & LF & LF
+     txt = txt & "• Jovian year: " & Str$(FMain.JovianYearFromJD(CurJD))
 
+     'This only gives the _current_ 28HD time
+     'txt = txt & "• 28-Hour Day: " & FMain.Hour28DayStrFromJD() & LF
      time.text = txt
      Clipboard.Copy(txt)
 End
